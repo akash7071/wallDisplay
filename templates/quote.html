@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wall Display - Quote</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            background: #222; 
+            color: white; 
+            text-align: center; 
+            margin: 0; 
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .quote-container {
+            max-width: 900px;
+            padding: 40px;
+        }
+        .quote {
+            font-size: 48px;
+            font-style: italic;
+            line-height: 1.6;
+            margin: 40px 0;
+            color: #FFD700;
+        }
+        .link-section {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #555;
+        }
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="quote-container">
+        <div class="quote">
+            {{ quote }}
+        </div>
+    </div>
+</body>
+</html>
