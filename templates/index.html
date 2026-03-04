@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Logger</title>
+    <style>
+        body { font-family: Arial; background: #222; color: white; text-align: center; margin:0; padding:0; }
+        h1 { padding: 20px 0; }
+        .container { display: flex; flex-wrap: wrap; justify-content: center; }
+        .task { margin: 10px; padding: 15px; border: 1px solid #555; border-radius: 10px; width: 250px; box-sizing: border-box; }
+        .green { color: #4CAF50; }
+        .yellow { color: #FFEB3B; }
+        .red { color: #F44336; }
+        button { padding: 8px 15px; margin-top: 10px; font-size: 14px; cursor: pointer; }
+        input[type="date"] { margin-top: 5px; width: 100%; padding: 5px; font-size: 14px; }
+        form { display: flex; flex-direction: column; align-items: center; }
+    </style>
+</head>
+<body>
+    <h1>Event Logger</h1>
+    <div class="container">
+        {% for task, days in statuses.items() %}
+            {% set color = "green" if days <= 6 else "yellow" if days <= 13 else "red" %}
+            <div class="task {{ color }}">
+                <h2>{{ task.capitalize() }}</h2>
+                <p>{{ "Today" if days == 0 else days ~ " days ago" }}</p>
+                
+                <!-- Quick mark today button -->
+                <a href="/mark/{{ task }}"><button>Mark Today</button></a>
+                
+                <!-- Form to log custom date -->
+                <form method="POST" action="/mark_custom">
+                    <input type="hidden" name="task" value="{{ task }}">
+                    <input type="date" name="date" required max="{{ date.today().isoformat() }}">
+                    <button type="submit">Mark Custom Date</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
