@@ -1,6 +1,6 @@
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, jsonify
 from services.counters_service import mark_done, get_status
-from auth.keep_client import get_random_quote
+from services.quote_service import get_current_quote, get_and_save_random_quote
 from datetime import date
 
 app = Flask(__name__)
@@ -8,8 +8,19 @@ app = Flask(__name__)
 # Homepage showing quote
 @app.route("/")
 def index():
-    quote = get_random_quote()
+    quote = get_current_quote()
     return render_template("quote.html", quote=quote)
+
+# API endpoint to get a quote notification
+@app.route("/api/send_quote_notification")
+def send_quote_notification():
+    quote = get_current_quote()
+    return jsonify({
+        "status": "success",
+        "quote": quote,
+        "title": "Daily Quote",
+        "icon": "📜"
+    })
 
 # Counters page
 @app.route("/counters")

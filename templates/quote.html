@@ -28,18 +28,34 @@
             margin: 40px 0;
             color: #FFD700;
         }
-        .link-section {
+        .controls {
             margin-top: 50px;
             padding-top: 20px;
             border-top: 2px solid #555;
         }
-        a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-size: 18px;
+        .notif-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
         }
-        a:hover {
-            text-decoration: underline;
+        .notif-button:hover {
+            background: #45a049;
+        }
+        .notif-button.off {
+            background: #f44336;
+        }
+        .notif-button.off:hover {
+            background: #da190b;
+        }
+        .notif-status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #BBB;
         }
     </style>
 </head>
@@ -48,6 +64,120 @@
         <div class="quote">
             {{ quote }}
         </div>
+        <div class="controls">
+            <button class="notif-button" id="notifBtn" onclick="toggleNotifications()">
+                🔔 Enable Notifications
+            </button>
+            <button class="notif-button" id="sendBtn" onclick="sendQuoteNotification()" style="display:none;">
+                📬 Get Quote Now
+            </button>
+            <div class="notif-status" id="notifStatus">Notifications: Disabled</div>
+        </div>
     </div>
+
+    <script>
+        console.log('Page loaded, checking Notification support...');
+        console.log('Notification API available:', 'Notification' in window);
+        
+        // Check notification permission on load
+        function updateNotificationUI() {
+            const btn = document.getElementById('notifBtn');
+            const sendBtn = document.getElementById('sendBtn');
+            const status = document.getElementById('notifStatus');
+            
+            console.log('updateNotificationUI called');
+            
+            if (!('Notification' in window)) {
+                console.log('Notification API not supported');
+                status.textContent = 'Notifications: Not supported';
+                btn.disabled = true;
+                return;
+            }
+            
+            console.log('Current permission:', Notification.permission);
+            
+            if (Notification.permission === 'granted') {
+                btn.textContent = '🔔 Disable Notifications';
+                btn.classList.add('off');
+                sendBtn.style.display = 'inline-block';
+                status.textContent = 'Notifications: Enabled ✓';
+            } else {
+                btn.textContent = '🔔 Enable Notifications';
+                btn.classList.remove('off');
+                sendBtn.style.display = 'none';
+                status.textContent = 'Notifications: Disabled';
+            }
+        }
+
+        function sendQuoteNotification() {
+            console.log('sendQuoteNotification called');
+            fetch('/api/send_quote_notification')
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Got quote:', data.quote);
+                    new Notification(data.title, {
+                        body: data.quote,
+                        icon: data.icon
+                    });
+                })
+                .catch(err => console.log('Notification request failed:', err));
+        }
+
+        function toggleNotifications() {
+            console.log('toggleNotifications called');
+            
+            if (!('Notification' in window)) {
+                console.log('Notification not supported');
+                alert('Notifications not supported in this browser');
+                return;
+            }
+
+            console.log('Current permission:', Notification.permission);
+
+            if (Notification.permission === 'granted') {
+                console.log('Disabling notifications');
+                const btn = document.getElementById('notifBtn');
+                btn.textContent = '🔔 Enable Notifications';
+                btn.classList.remove('off');
+                document.getElementById('sendBtn').style.display = 'none';
+                document.getElementById('notifStatus').textContent = 'Notifications: Disabled';
+                localStorage.setItem('notificationsDisabled', 'true');
+            } else if (Notification.permission !== 'denied') {
+                console.log('Requesting permission');
+                Notification.requestPermission().then(permission => {
+                    console.log('Permission result:', permission);
+                    if (permission === 'granted') {
+                        new Notification('Wall Display', {
+                            body: 'Quote notifications enabled!',
+                            icon: '📜'
+                        });
+                        sendQuoteNotification();
+                    }
+                    updateNotificationUI();
+                });
+            } else {
+                console.log('Permission already denied');
+                alert('Notification permission was denied.\n\nTo enable notifications:\n1. Click the lock icon in the address bar\n2. Find "Notifications"\n3. Change to "Allow"\n4. Refresh the page');
+            }
+        }
+
+        // Update UI on page load
+        window.addEventListener('load', function() {
+            console.log('Window load event fired');
+            updateNotificationUI();
+        });
+
+        // Send notification if enabled periodically (every hour)
+        setInterval(function() {
+            if ('Notification' in window && 
+                Notification.permission === 'granted' && 
+                localStorage.getItem('notificationsDisabled') !== 'true') {
+                console.log('Auto-sending quote notification');
+                sendQuoteNotification();
+            }
+        }, 3600000); // Check every hour
+        
+        console.log('Script initialization complete');
+    </script>
 </body>
 </html>
