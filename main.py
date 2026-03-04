@@ -4,6 +4,7 @@
 # IMPORTS
 # -------------------------
 import threading
+import sys
 
 # Flask web logger
 from web_logger import app as web_app  # adjust path if needed
@@ -29,6 +30,19 @@ from display.modes import (
     go_to_sleep_mode,
     restore_day_mode,
 )
+from config import ENABLE_COUNTERS_WIDGET
+
+# -------------------------
+# PARSE COMMAND-LINE ARGUMENTS
+# -------------------------
+enable_counters = ENABLE_COUNTERS_WIDGET
+for arg in sys.argv[1:]:
+    if arg.startswith("counter="):
+        value = arg.split("=")[1].lower()
+        enable_counters = value in ("on", "true", "1", "yes")
+        break
+
+ENABLE_COUNTERS_WIDGET = enable_counters
 
 # -------------------------
 # FUNCTION TO RUN FLASK
@@ -47,7 +61,7 @@ counters_frame = None
 
 def show_counters():
     global counters_frame
-    if counters_frame is None:
+    if ENABLE_COUNTERS_WIDGET and counters_frame is None:
         counters_frame = create_counters_widget(root)
 
 def hide_counters():
@@ -57,9 +71,10 @@ def hide_counters():
         counters_frame = None
 
 def refresh_counters():
-    hide_counters()
-    show_counters()
-    root.after(60 * 60 * 1000, refresh_counters)  # refresh hourly
+    if ENABLE_COUNTERS_WIDGET:
+        hide_counters()
+        show_counters()
+        root.after(60 * 60 * 1000, refresh_counters)  # refresh hourly
 
 # -------------------------
 # START UPDATES

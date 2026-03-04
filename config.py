@@ -30,3 +30,6 @@ BRIGHTNESS_SLEEP = 0
 COLOR_BACKGROUND = "#f2f2f2"
 COLOR_NIGHT_BACKGROUND = "black"
 COLOR_NIGHT_TEXT = "#33ff33"
+
+# --- Widgets ---
+ENABLE_COUNTERS_WIDGET = os.getenv("ENABLE_COUNTERS_WIDGET", "true").lower() == "true"
