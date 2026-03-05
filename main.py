@@ -7,7 +7,7 @@ import threading
 import sys
 
 # Flask web logger
-from web_logger import app as web_app  # adjust path if needed
+from web_logger import app as web_app, ssl_context  # adjust path if needed
 
 # Tkinter UI imports
 from ui.app import (
@@ -48,7 +48,7 @@ ENABLE_COUNTERS_WIDGET = enable_counters
 # FUNCTION TO RUN FLASK
 # -------------------------
 def run_web_logger():
-    web_app.run(host="0.0.0.0", port=8000, debug=False)
+    web_app.run(host="0.0.0.0", port=8000, debug=False, ssl_context=ssl_context)
 
 # Start Flask in a background daemon thread
 flask_thread = threading.Thread(target=run_web_logger, daemon=True)

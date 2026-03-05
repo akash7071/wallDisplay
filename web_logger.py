@@ -2,8 +2,17 @@ from flask import Flask, render_template, redirect, request, jsonify
 from services.counters_service import mark_done, get_status
 from services.quote_service import get_current_quote, get_and_save_random_quote
 from datetime import date
+import ssl
+import os
 
 app = Flask(__name__)
+
+# SSL context for HTTPS
+ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+cert_file = os.path.join(os.path.dirname(__file__), 'cert.pem')
+key_file = os.path.join(os.path.dirname(__file__), 'key.pem')
+if os.path.exists(cert_file) and os.path.exists(key_file):
+    ssl_context.load_cert_chain(cert_file, key_file)
 
 # Homepage showing quote
 @app.route("/")
@@ -45,4 +54,4 @@ def mark_custom():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=8000, ssl_context=ssl_context)
