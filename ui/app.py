@@ -1,5 +1,13 @@
 import tkinter as tk
-from config import COLOR_BACKGROUND
+from datetime import datetime
+from config import (
+    COLOR_BACKGROUND,
+    FOOTER_TEXT_LINE1,
+    FOOTER_TEXT_LINE2,
+    FOOTER_FONT,
+    FOOTER_NORMAL_FG,
+    FOOTER_HIGHLIGHT_FG,
+)
 
 # -------------------------
 # ROOT WINDOW
@@ -55,6 +63,48 @@ date_label = tk.Label(
     anchor="e",
 )
 date_label.pack(anchor="e", padx=40, pady=(0, 10))
+
+# -------------------------
+# FOOTER (BOTTOM-RIGHT)
+# -------------------------
+footer_frame = tk.Frame(root, bg=COLOR_BACKGROUND)
+footer_frame.place(relx=1.0, rely=1.0, anchor="se")
+
+footer_label1 = tk.Label(
+    footer_frame,
+    text=FOOTER_TEXT_LINE1,
+    font=FOOTER_FONT,
+    fg=FOOTER_NORMAL_FG,
+    bg=COLOR_BACKGROUND,
+    anchor="e",
+    justify="right",
+)
+footer_label1.pack(anchor="e", padx=40, pady=(0, 0))
+
+footer_label2 = tk.Label(
+    footer_frame,
+    text=FOOTER_TEXT_LINE2,
+    font=FOOTER_FONT,
+    fg=FOOTER_NORMAL_FG,
+    bg=COLOR_BACKGROUND,
+    anchor="e",
+    justify="right",
+)
+footer_label2.pack(anchor="e", padx=40, pady=(0, 20))
+
+
+def update_footer(root, label1, label2):
+    week_number = datetime.now().isocalendar()[1]
+    highlight_first = week_number % 2 == 1
+
+    if highlight_first:
+        label1.config(fg=FOOTER_HIGHLIGHT_FG, font=(FOOTER_FONT[0], FOOTER_FONT[1], "bold"))
+        label2.config(fg=FOOTER_NORMAL_FG, font=FOOTER_FONT)
+    else:
+        label1.config(fg=FOOTER_NORMAL_FG, font=FOOTER_FONT)
+        label2.config(fg=FOOTER_HIGHLIGHT_FG, font=(FOOTER_FONT[0], FOOTER_FONT[1], "bold"))
+
+    root.after(60 * 1000, lambda: update_footer(root, label1, label2))
 
 # -------------------------
 # EXIT BINDING

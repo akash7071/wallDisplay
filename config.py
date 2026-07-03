@@ -33,3 +33,10 @@ COLOR_NIGHT_TEXT = "#33ff33"
 
 # --- Widgets ---
 ENABLE_COUNTERS_WIDGET = os.getenv("ENABLE_COUNTERS_WIDGET", "true").lower() == "true"
+
+# --- Footer Text ---
+FOOTER_TEXT_LINE1 = os.getenv("FOOTER_TEXT_LINE1", "A Ba T")
+FOOTER_TEXT_LINE2 = os.getenv("FOOTER_TEXT_LINE2", "S Bi C")
+FOOTER_FONT = ("Arial", 22)
+FOOTER_NORMAL_FG = "#333333"
+FOOTER_HIGHLIGHT_FG = "#000000"
