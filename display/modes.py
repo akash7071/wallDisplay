@@ -37,6 +37,7 @@ def go_to_sleep_mode(
     label,
     date_label,
     weather_container,
+    footer_frame,
 ):
     print("🌙 Entering Sleep Mode")
 
@@ -48,6 +49,7 @@ def go_to_sleep_mode(
     label.pack_forget()
     date_label.pack_forget()
     weather_container.place_forget()
+    footer_frame.place_forget()
 
     clock_frame.place_forget()
     clock_frame.place(relx=0.5, rely=0.5, anchor="center")
@@ -67,6 +69,7 @@ def go_to_sleep_mode(
             label,
             date_label,
             weather_container,
+            footer_frame,
         ),
     )
 
@@ -78,6 +81,7 @@ def restore_day_mode(
     label,
     date_label,
     weather_container,
+    footer_frame,
 ):
     print("☀️ Restoring Day Mode")
 
@@ -94,6 +98,7 @@ def restore_day_mode(
     label.pack(expand=True)
     date_label.pack(anchor="e", padx=40, pady=(0, 10))
     weather_container.place(relx=0.0, y=0, anchor="nw")
+    footer_frame.place(relx=1.0, rely=1.0, anchor="se")
 
     schedule_next_update(
         root,
@@ -105,6 +110,7 @@ def restore_day_mode(
             label,
             date_label,
             weather_container,
+            footer_frame,
         ),
     )
 
@@ -118,6 +124,7 @@ def restore_day_mode(
             label,
             date_label,
             weather_container,
+            footer_frame,
         ),
     )
 
@@ -129,6 +136,7 @@ def restore_day_mode(
             label,
             date_label,
             weather_container,
+            footer_frame,
         )
 
 
@@ -139,6 +147,7 @@ def dim_brightness(
     label,
     date_label,
     weather_container,
+    footer_frame,
 ):
     print("💡 Evening Mode")
     set_brightness(BRIGHTNESS_EVENING)

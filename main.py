@@ -18,6 +18,7 @@ from ui.app import (
     date_label,
     weather_container,
     weather_frame,
+    footer_frame,
 )
 
 from ui.clock import update_time
@@ -95,6 +96,7 @@ if is_sleep_time():
         label,
         date_label,
         weather_container,
+        footer_frame,
     )
 else:
     restore_day_mode(
@@ -104,6 +106,7 @@ else:
         label,
         date_label,
         weather_container,
+        footer_frame,
     )
     show_counters()
     refresh_counters()
