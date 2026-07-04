@@ -94,7 +94,7 @@ def restore_day_mode(
     clock_frame.place_forget()
     clock_frame.place(relx=1.0, y=0, anchor="ne")
 
-    time_label.configure(bg=COLOR_BACKGROUND, fg="black")
+    time_label.configure(bg=COLOR_BACKGROUND, fg="black", font=("Arial", 70, "bold"))
 
     label.pack(expand=True)
     date_label.pack(anchor="e", padx=40, pady=(0, 10))
