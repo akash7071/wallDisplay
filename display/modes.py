@@ -57,6 +57,7 @@ def go_to_sleep_mode(
     time_label.configure(
         bg=COLOR_NIGHT_BACKGROUND,
         fg=COLOR_NIGHT_TEXT,
+        font=("Arial", 210, "bold"),
     )
 
     schedule_next_update(
