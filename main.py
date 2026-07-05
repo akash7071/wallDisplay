@@ -26,6 +26,7 @@ from ui.quote import update_quote
 from ui.weather import update_weather
 from ui.counters_widget import create_counters_widget
 
+from services.quote_service import save_keep_quote_list
 from display.modes import (
     is_sleep_time,
     go_to_sleep_mode,
@@ -37,13 +38,23 @@ from config import ENABLE_COUNTERS_WIDGET
 # PARSE COMMAND-LINE ARGUMENTS
 # -------------------------
 enable_counters = ENABLE_COUNTERS_WIDGET
+quote_list = False
+quote_list_file = None
 for arg in sys.argv[1:]:
     if arg.startswith("counter="):
-        value = arg.split("=")[1].lower()
+        value = arg.split("=", 1)[1].lower()
         enable_counters = value in ("on", "true", "1", "yes")
-        break
+    elif arg.startswith("quote_list="):
+        value = arg.split("=", 1)[1].lower()
+        quote_list = value in ("1", "true", "on", "yes")
+    elif arg.startswith("quote_list_file="):
+        quote_list_file = arg.split("=", 1)[1]
 
 ENABLE_COUNTERS_WIDGET = enable_counters
+
+if quote_list:
+    output_path = save_keep_quote_list(quote_list_file)
+    print(f"Keep quote list saved to: {output_path}")
 
 # -------------------------
 # FUNCTION TO RUN FLASK
