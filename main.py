@@ -19,6 +19,9 @@ from ui.app import (
     weather_container,
     weather_frame,
     footer_frame,
+    footer_label1,
+    footer_label2,
+    update_footer,
 )
 
 from ui.clock import update_time
@@ -94,6 +97,7 @@ def refresh_counters():
 update_time(root, time_label, date_label)
 update_quote(root, label)
 update_weather(root, weather_frame)
+update_footer(root, footer_label1, footer_label2)
 
 # -------------------------
 # INITIAL MODE
