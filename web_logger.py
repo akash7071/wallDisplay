@@ -1,9 +1,21 @@
 from flask import Flask, render_template, redirect, request, jsonify
 from services.counters_service import mark_done, get_status
 from services.quote_service import get_current_quote, get_and_save_random_quote
-from datetime import date
+from datetime import date, datetime
 import ssl
 import os
+
+from config import (
+    BRIGHTNESS_DAY,
+    BRIGHTNESS_EVENING,
+    BRIGHTNESS_SLEEP,
+    DIM_HOUR,
+    SLEEP_END_HOUR,
+    SLEEP_START_HOUR,
+)
+from display.brightness import get_last_requested_brightness
+from display.modes import is_sleep_time
+from services.weather_service import get_latest_weather
 
 app = Flask(__name__)
 
@@ -14,11 +26,41 @@ key_file = os.path.join(os.path.dirname(__file__), 'key.pem')
 if os.path.exists(cert_file) and os.path.exists(key_file):
     ssl_context.load_cert_chain(cert_file, key_file)
 
-# Homepage showing quote
+def current_mode():
+    if is_sleep_time():
+        return "sleep"
+    if DIM_HOUR <= datetime.now().hour < SLEEP_START_HOUR:
+        return "dim"
+    return "day"
+
+
+# Homepage dashboard
 @app.route("/")
 def index():
-    quote = get_current_quote()
-    return render_template("quote.html", quote=quote)
+    return render_template("dashboard.html")
+
+
+@app.route("/api/dashboard/status")
+def dashboard_status():
+    mode = current_mode()
+    brightness = get_last_requested_brightness()
+    if brightness is None:
+        brightness = {"day": BRIGHTNESS_DAY, "dim": BRIGHTNESS_EVENING, "sleep": BRIGHTNESS_SLEEP}[mode]
+    return jsonify({
+        "server_time": datetime.now().isoformat(),
+        "quote": get_current_quote(),
+        "weather": get_latest_weather(),
+        "display": {
+            "status": "sleeping" if mode == "sleep" else "active",
+            "brightness": brightness,
+            "mode": mode,
+        },
+        "schedule": {
+            "wake": f"{SLEEP_END_HOUR:02d}:00",
+            "dim": f"{DIM_HOUR:02d}:00",
+            "sleep": f"{SLEEP_START_HOUR:02d}:00",
+        },
+    })
 
 # API endpoint to get a quote notification
 @app.route("/api/send_quote_notification")
@@ -30,6 +72,11 @@ def send_quote_notification():
         "title": "Daily Quote",
         "icon": "📜"
     })
+
+
+@app.route("/quote")
+def quote_page():
+    return render_template("quote.html", quote=get_current_quote())
 
 # Counters page
 @app.route("/counters")

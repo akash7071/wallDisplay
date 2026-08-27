@@ -2,7 +2,10 @@ import requests
 from datetime import datetime
 from config import OPENWEATHER_API_KEY, CITY_NAME, COUNTRY_CODE
 
+_latest_weather = None
+
 def fetch_weather():
+    global _latest_weather
     if not all([OPENWEATHER_API_KEY, CITY_NAME, COUNTRY_CODE]):
         return []
 
@@ -44,8 +47,21 @@ def fetch_weather():
                 "icon": item["weather"][0]["icon"]
             })
 
+        _latest_weather = results
         return results
 
     except Exception as e:
         print(f"Weather fetch error: {e}")
         return []
+
+
+def get_latest_weather():
+    """Return weather already fetched for the display without making a web request."""
+    if not _latest_weather:
+        return None
+    current = _latest_weather[0]
+    return {
+        "temperature": current["temp"],
+        "icon": current["icon"],
+        "observed_at": current["time"].isoformat(),
+    }
