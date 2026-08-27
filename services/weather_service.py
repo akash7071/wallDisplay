@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime
 from config import OPENWEATHER_API_KEY, CITY_NAME, COUNTRY_CODE
+from services.dashboard_settings import get_weather_units
 
 _latest_weather = None
 
@@ -14,10 +15,11 @@ def fetch_weather():
     # Endpoint for FORECAST (The future blocks)
     forecast_url = "http://api.openweathermap.org/data/2.5/forecast"
     
+    units = get_weather_units()
     params = {
         "q": f"{CITY_NAME},{COUNTRY_CODE}",
         "appid": OPENWEATHER_API_KEY,
-        "units": "imperial"
+        "units": units
     }
 
     try:
@@ -47,7 +49,7 @@ def fetch_weather():
                 "icon": item["weather"][0]["icon"]
             })
 
-        _latest_weather = results
+        _latest_weather = {"forecasts": results, "units": units}
         return results
 
     except Exception as e:
@@ -59,9 +61,10 @@ def get_latest_weather():
     """Return weather already fetched for the display without making a web request."""
     if not _latest_weather:
         return None
-    current = _latest_weather[0]
+    current = _latest_weather["forecasts"][0]
     return {
         "temperature": current["temp"],
         "icon": current["icon"],
         "observed_at": current["time"].isoformat(),
+        "unit": "F" if _latest_weather["units"] == "imperial" else "C",
     }

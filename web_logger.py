@@ -63,6 +63,7 @@ def dashboard_status():
             "sleep": f"{SLEEP_START_HOUR:02d}:00",
         },
         "widgets": load_settings()["widgets"],
+        "weather_units": load_settings()["weather_units"],
     })
 
 
@@ -83,6 +84,16 @@ def queue_widget_update(widget):
         return jsonify({"error": "'enabled' must be true or false"}), 400
     command_queue.put((f"set_{widget}_enabled", enabled))
     return jsonify({"status": "queued", "enabled": enabled}), 202
+
+
+@app.route("/api/dashboard/weather/units", methods=["POST"])
+def set_weather_units():
+    data = request.get_json(silent=True) or {}
+    units = data.get("units")
+    if units not in ("imperial", "metric"):
+        return jsonify({"error": "'units' must be 'imperial' or 'metric'"}), 400
+    command_queue.put(("set_weather_units", units))
+    return jsonify({"status": "queued", "units": units}), 202
 
 # API endpoint to get a quote notification
 @app.route("/api/send_quote_notification")

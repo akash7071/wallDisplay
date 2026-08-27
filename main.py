@@ -43,6 +43,7 @@ from services.dashboard_settings import (
     is_quote_enabled,
     set_clock_enabled,
     set_quote_enabled,
+    set_weather_units,
 )
 
 # -------------------------
@@ -167,6 +168,10 @@ def apply_dashboard_commands():
                 label.pack(expand=True)
             else:
                 label.pack_forget()
+
+        if action == "set_weather_units":
+            set_weather_units(value)
+            update_weather(root, weather_frame)
 
     root.after(150, apply_dashboard_commands)
 
