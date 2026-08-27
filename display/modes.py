@@ -11,7 +11,7 @@ from config import (
     COLOR_NIGHT_TEXT,
 )
 from display.brightness import set_brightness
-from services.dashboard_settings import is_clock_enabled, is_quote_enabled
+from services.dashboard_settings import is_clock_enabled, is_quote_enabled, is_weather_enabled
 from utils.scheduler import schedule_next_update
 
 
@@ -104,7 +104,10 @@ def restore_day_mode(
     else:
         label.pack_forget()
     date_label.pack(anchor="e", padx=40, pady=(0, 10))
-    weather_container.place(relx=0.0, y=0, anchor="nw")
+    if is_weather_enabled():
+        weather_container.place(relx=0.0, y=0, anchor="nw")
+    else:
+        weather_container.place_forget()
     footer_frame.place(relx=1.0, rely=1.0, anchor="se")
 
     schedule_next_update(

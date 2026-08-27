@@ -41,8 +41,10 @@ from display.web_commands import command_queue
 from services.dashboard_settings import (
     is_clock_enabled,
     is_quote_enabled,
+    is_weather_enabled,
     set_clock_enabled,
     set_quote_enabled,
+    set_weather_enabled,
     set_weather_units,
 )
 
@@ -113,6 +115,8 @@ if not is_clock_enabled():
     clock_frame.place_forget()
 if not is_quote_enabled():
     label.pack_forget()
+if not is_weather_enabled():
+    weather_container.place_forget()
 
 # -------------------------
 # INITIAL MODE
@@ -172,6 +176,13 @@ def apply_dashboard_commands():
         if action == "set_weather_units":
             set_weather_units(value)
             update_weather(root, weather_frame)
+
+        if action == "set_weather_enabled":
+            enabled = set_weather_enabled(value)["widgets"]["weather"]
+            if enabled and not is_sleep_time():
+                weather_container.place(relx=0.0, y=0, anchor="nw")
+            else:
+                weather_container.place_forget()
 
     root.after(150, apply_dashboard_commands)
 

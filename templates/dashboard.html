@@ -15,7 +15,7 @@
 </head>
 <body>
   <main><header><div><h1>Wall Display</h1><p class="sub" id="updated">Connecting…</p></div></header>
-  <div class="grid"><section><h2>Current time</h2><div class="value" id="time">—</div></section><section><h2>Display</h2><div class="value" id="display">—</div></section><section class="wide"><h2>Current quote</h2><div class="quote" id="quote">—</div></section><section><h2>Weather</h2><div class="value" id="weather">Waiting for display weather update…</div><label for="weather-units">Temperature unit</label><select id="weather-units" onchange="setWeatherUnits(this.value)"><option value="imperial">Fahrenheit (°F)</option><option value="metric">Celsius (°C)</option></select></section><section><h2>Schedule</h2><div class="value" id="schedule">—</div></section><section><h2>Widgets</h2><div class="value">Clock: <span id="clock-state">—</span></div><button id="clock-toggle" type="button" onclick="toggleWidget('clock')">Loading…</button><div class="value">Quote: <span id="quote-state">—</span></div><button id="quote-toggle" type="button" onclick="toggleWidget('quote')">Loading…</button></section></div></main>
+  <div class="grid"><section><h2>Current time</h2><div class="value" id="time">—</div></section><section><h2>Display</h2><div class="value" id="display">—</div></section><section class="wide"><h2>Current quote</h2><div class="quote" id="quote">—</div></section><section><h2>Weather</h2><div class="value" id="weather">Waiting for display weather update…</div><label for="weather-units">Temperature unit</label><select id="weather-units" onchange="setWeatherUnits(this.value)"><option value="imperial">Fahrenheit (°F)</option><option value="metric">Celsius (°C)</option></select></section><section><h2>Schedule</h2><div class="value" id="schedule">—</div></section><section><h2>Widgets</h2><div class="value">Clock: <span id="clock-state">—</span></div><button id="clock-toggle" type="button" onclick="toggleWidget('clock')">Loading…</button><div class="value">Quote: <span id="quote-state">—</span></div><button id="quote-toggle" type="button" onclick="toggleWidget('quote')">Loading…</button><div class="value">Weather: <span id="weather-state">—</span></div><button id="weather-toggle" type="button" onclick="toggleWidget('weather')">Loading…</button></section></div></main>
   <script>
     const el = id => document.getElementById(id);
     function formatTime(value) { return new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value)); }
@@ -31,7 +31,7 @@
         el('weather-units').value = status.weather_units;
         el('weather-units').disabled = false;
         el('schedule').textContent = `Wake ${status.schedule.wake}\nDim ${status.schedule.dim}\nSleep ${status.schedule.sleep}`;
-        for (const widget of ['clock', 'quote']) {
+        for (const widget of ['clock', 'quote', 'weather']) {
           const enabled = status.widgets[widget];
           el(`${widget}-state`).textContent = enabled ? 'Enabled' : 'Disabled';
           el(`${widget}-toggle`).textContent = enabled ? `Disable ${widget}` : `Enable ${widget}`;

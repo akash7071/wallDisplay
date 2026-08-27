@@ -77,6 +77,11 @@ def set_quote_widget():
     return queue_widget_update("quote")
 
 
+@app.route("/api/dashboard/widgets/weather", methods=["POST"])
+def set_weather_widget():
+    return queue_widget_update("weather")
+
+
 def queue_widget_update(widget):
     data = request.get_json(silent=True) or {}
     enabled = data.get("enabled")

@@ -5,7 +5,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SETTINGS_FILE = BASE_DIR / "data" / "dashboard_settings.json"
-DEFAULT_SETTINGS = {"widgets": {"clock": True, "quote": True}, "weather_units": "imperial"}
+DEFAULT_SETTINGS = {"widgets": {"clock": True, "quote": True, "weather": True}, "weather_units": "imperial"}
 
 
 def load_settings():
@@ -22,6 +22,7 @@ def load_settings():
             "widgets": {
                 "clock": bool(widgets.get("clock", True)),
                 "quote": bool(widgets.get("quote", True)),
+                "weather": bool(widgets.get("weather", True)),
             },
             "weather_units": weather_units,
         }
@@ -54,6 +55,14 @@ def is_clock_enabled():
 
 def is_quote_enabled():
     return load_settings()["widgets"]["quote"]
+
+
+def set_weather_enabled(enabled):
+    return set_widget_enabled("weather", enabled)
+
+
+def is_weather_enabled():
+    return load_settings()["widgets"]["weather"]
 
 
 def set_weather_units(units):
