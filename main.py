@@ -38,7 +38,12 @@ from display.modes import (
 )
 from config import ENABLE_COUNTERS_WIDGET
 from display.web_commands import command_queue
-from services.dashboard_settings import is_clock_enabled, set_clock_enabled
+from services.dashboard_settings import (
+    is_clock_enabled,
+    is_quote_enabled,
+    set_clock_enabled,
+    set_quote_enabled,
+)
 
 # -------------------------
 # PARSE COMMAND-LINE ARGUMENTS
@@ -105,6 +110,8 @@ update_footer(root, footer_label1, footer_label2)
 # Honor dashboard widget settings before choosing the initial display mode.
 if not is_clock_enabled():
     clock_frame.place_forget()
+if not is_quote_enabled():
+    label.pack_forget()
 
 # -------------------------
 # INITIAL MODE
@@ -153,6 +160,13 @@ def apply_dashboard_commands():
                     clock_frame.place(relx=0.5, rely=0.5, anchor="center")
                 else:
                     clock_frame.place(relx=1.0, y=0, anchor="ne")
+
+        if action == "set_quote_enabled":
+            enabled = set_quote_enabled(value)["widgets"]["quote"]
+            if enabled and not is_sleep_time():
+                label.pack(expand=True)
+            else:
+                label.pack_forget()
 
     root.after(150, apply_dashboard_commands)
 
