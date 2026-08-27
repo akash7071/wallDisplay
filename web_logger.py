@@ -14,6 +14,8 @@ from config import (
     SLEEP_START_HOUR,
 )
 from display.brightness import get_last_requested_brightness
+from display.power import get_last_requested_power
+from display.runtime_state import get_mode
 from display.modes import is_sleep_time
 from services.weather_service import get_latest_weather
 from services.dashboard_settings import load_settings
@@ -29,11 +31,12 @@ if os.path.exists(cert_file) and os.path.exists(key_file):
     ssl_context.load_cert_chain(cert_file, key_file)
 
 def current_mode():
+    inferred_mode = "day"
     if is_sleep_time():
-        return "sleep"
-    if DIM_HOUR <= datetime.now().hour < SLEEP_START_HOUR:
-        return "dim"
-    return "day"
+        inferred_mode = "sleep"
+    elif DIM_HOUR <= datetime.now().hour < SLEEP_START_HOUR:
+        inferred_mode = "dim"
+    return get_mode(inferred_mode)
 
 
 # Homepage dashboard
@@ -48,6 +51,8 @@ def dashboard_status():
     brightness = get_last_requested_brightness()
     if brightness is None:
         brightness = {"day": BRIGHTNESS_DAY, "dim": BRIGHTNESS_EVENING, "sleep": BRIGHTNESS_SLEEP}[mode]
+    settings = load_settings()
+    power_state = get_last_requested_power()
     return jsonify({
         "server_time": datetime.now().isoformat(),
         "quote": get_current_quote(),
@@ -56,14 +61,15 @@ def dashboard_status():
             "status": "sleeping" if mode == "sleep" else "active",
             "brightness": brightness,
             "mode": mode,
+            "power": "on" if power_state in (None, 1) else "off",
         },
         "schedule": {
             "wake": f"{SLEEP_END_HOUR:02d}:00",
             "dim": f"{DIM_HOUR:02d}:00",
             "sleep": f"{SLEEP_START_HOUR:02d}:00",
         },
-        "widgets": load_settings()["widgets"],
-        "weather_units": load_settings()["weather_units"],
+        "widgets": settings["widgets"],
+        "weather_units": settings["weather_units"],
     })
 
 
@@ -80,6 +86,11 @@ def set_quote_widget():
 @app.route("/api/dashboard/widgets/weather", methods=["POST"])
 def set_weather_widget():
     return queue_widget_update("weather")
+
+
+@app.route("/api/dashboard/widgets/counters", methods=["POST"])
+def set_counters_widget():
+    return queue_widget_update("counters")
 
 
 def queue_widget_update(widget):
@@ -99,6 +110,36 @@ def set_weather_units():
         return jsonify({"error": "'units' must be 'imperial' or 'metric'"}), 400
     command_queue.put(("set_weather_units", units))
     return jsonify({"status": "queued", "units": units}), 202
+
+
+@app.route("/api/dashboard/display/brightness", methods=["POST"])
+def set_dashboard_brightness():
+    data = request.get_json(silent=True) or {}
+    brightness = data.get("brightness")
+    if not isinstance(brightness, int) or not 0 <= brightness <= 100:
+        return jsonify({"error": "'brightness' must be a whole number from 0 to 100"}), 400
+    command_queue.put(("set_brightness", brightness))
+    return jsonify({"status": "queued", "brightness": brightness}), 202
+
+
+@app.route("/api/dashboard/display/power", methods=["POST"])
+def set_dashboard_power():
+    data = request.get_json(silent=True) or {}
+    power = data.get("power")
+    if power not in ("on", "off"):
+        return jsonify({"error": "'power' must be 'on' or 'off'"}), 400
+    command_queue.put(("set_display_power", power))
+    return jsonify({"status": "queued", "power": power}), 202
+
+
+@app.route("/api/dashboard/display/mode", methods=["POST"])
+def set_dashboard_mode():
+    data = request.get_json(silent=True) or {}
+    mode = data.get("mode")
+    if mode not in ("sleep", "wake"):
+        return jsonify({"error": "'mode' must be 'sleep' or 'wake'"}), 400
+    command_queue.put(("set_display_mode", mode))
+    return jsonify({"status": "queued", "mode": mode}), 202
 
 # API endpoint to get a quote notification
 @app.route("/api/send_quote_notification")

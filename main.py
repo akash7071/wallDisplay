@@ -39,14 +39,19 @@ from display.modes import (
 from config import ENABLE_COUNTERS_WIDGET
 from display.web_commands import command_queue
 from services.dashboard_settings import (
+    are_counters_enabled,
     is_clock_enabled,
     is_quote_enabled,
     is_weather_enabled,
     set_clock_enabled,
+    set_counters_enabled,
     set_quote_enabled,
     set_weather_enabled,
     set_weather_units,
 )
+from display.brightness import set_brightness
+from display.power import set_display_power
+from config import DISPLAY_POWER_ON, DISPLAY_POWER_OFF
 
 # -------------------------
 # PARSE COMMAND-LINE ARGUMENTS
@@ -64,7 +69,7 @@ for arg in sys.argv[1:]:
     elif arg.startswith("quote_list_file="):
         quote_list_file = arg.split("=", 1)[1]
 
-ENABLE_COUNTERS_WIDGET = enable_counters
+ENABLE_COUNTERS_WIDGET = enable_counters and are_counters_enabled()
 
 if quote_list:
     output_path = save_keep_quote_list(quote_list_file)
@@ -131,6 +136,8 @@ if is_sleep_time():
         date_label,
         weather_container,
         footer_frame,
+        show_counters,
+        hide_counters,
     )
 else:
     restore_day_mode(
@@ -141,6 +148,8 @@ else:
         date_label,
         weather_container,
         footer_frame,
+        show_counters,
+        hide_counters,
     )
     show_counters()
     refresh_counters()
@@ -183,6 +192,27 @@ def apply_dashboard_commands():
                 weather_container.place(relx=0.0, y=0, anchor="nw")
             else:
                 weather_container.place_forget()
+
+        if action == "set_counters_enabled":
+            ENABLE_COUNTERS_WIDGET = set_counters_enabled(value)["widgets"]["counters"]
+            if ENABLE_COUNTERS_WIDGET and not is_sleep_time():
+                show_counters()
+            else:
+                hide_counters()
+
+        if action == "set_brightness":
+            set_brightness(value)
+
+        if action == "set_display_power":
+            set_display_power(DISPLAY_POWER_ON if value == "on" else DISPLAY_POWER_OFF)
+
+        if action == "set_display_mode":
+            if value == "sleep":
+                go_to_sleep_mode(root, clock_frame, time_label, label, date_label,
+                                 weather_container, footer_frame, show_counters, hide_counters)
+            else:
+                restore_day_mode(root, clock_frame, time_label, label, date_label,
+                                 weather_container, footer_frame, show_counters, hide_counters)
 
     root.after(150, apply_dashboard_commands)
 

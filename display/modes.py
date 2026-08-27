@@ -11,6 +11,7 @@ from config import (
     COLOR_NIGHT_TEXT,
 )
 from display.brightness import set_brightness
+from display.runtime_state import set_mode
 from services.dashboard_settings import is_clock_enabled, is_quote_enabled, is_weather_enabled
 from utils.scheduler import schedule_next_update
 
@@ -39,10 +40,15 @@ def go_to_sleep_mode(
     date_label,
     weather_container,
     footer_frame,
+    show_counters=None,
+    hide_counters=None,
 ):
     print("🌙 Entering Sleep Mode")
 
     set_brightness(BRIGHTNESS_SLEEP)
+    set_mode("sleep")
+    if hide_counters:
+        hide_counters()
 
     root.configure(bg=COLOR_NIGHT_BACKGROUND)
     clock_frame.configure(bg=COLOR_NIGHT_BACKGROUND)
@@ -73,6 +79,8 @@ def go_to_sleep_mode(
             date_label,
             weather_container,
             footer_frame,
+            show_counters,
+            hide_counters,
         ),
     )
 
@@ -85,10 +93,13 @@ def restore_day_mode(
     date_label,
     weather_container,
     footer_frame,
+    show_counters=None,
+    hide_counters=None,
 ):
     print("☀️ Restoring Day Mode")
 
     set_brightness(BRIGHTNESS_DAY)
+    set_mode("day")
 
     root.configure(bg=COLOR_BACKGROUND)
     clock_frame.configure(bg=COLOR_BACKGROUND)
@@ -109,6 +120,8 @@ def restore_day_mode(
     else:
         weather_container.place_forget()
     footer_frame.place(relx=1.0, rely=1.0, anchor="se")
+    if show_counters:
+        show_counters()
 
     schedule_next_update(
         root,
@@ -135,6 +148,8 @@ def restore_day_mode(
             date_label,
             weather_container,
             footer_frame,
+            show_counters,
+            hide_counters,
         ),
     )
 
@@ -161,3 +176,4 @@ def dim_brightness(
 ):
     print("💡 Evening Mode")
     set_brightness(BRIGHTNESS_EVENING)
+    set_mode("dim")

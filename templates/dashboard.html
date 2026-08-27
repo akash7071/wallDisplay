@@ -9,13 +9,13 @@
     main { max-width: 980px; margin: auto; padding: 24px 16px 48px; } header { display: flex; gap: 16px; justify-content: space-between; align-items: start; margin-bottom: 24px; }
     h1 { margin: 0; font-size: 1.7rem; } .sub { color: var(--muted); margin: 4px 0 0; } .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
     .wide { grid-column: span 2; } section { background: var(--card); border-radius: 16px; padding: 18px; } h2 { font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
-    .value { font-size: 1.25rem; line-height: 1.4; white-space: pre-wrap; } .quote { font-size: 1.05rem; line-height: 1.55; } button { border: 1px solid #536174; background: transparent; color: #f5f7fa; padding: 8px 11px; border-radius: 8px; font: inherit; }
+    .value { font-size: 1.25rem; line-height: 1.4; white-space: pre-wrap; } .quote { font-size: 1.05rem; line-height: 1.55; } button, select, input { border: 1px solid #536174; background: transparent; color: #f5f7fa; padding: 8px 11px; border-radius: 8px; font: inherit; } select { display: block; margin-top: 6px; width: 100%; } input[type=range] { padding: 0; width: 100%; } .button-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     @media (max-width: 560px) { .wide { grid-column: span 1; } header { align-items: center; } }
   </style>
 </head>
 <body>
   <main><header><div><h1>Wall Display</h1><p class="sub" id="updated">Connecting…</p></div></header>
-  <div class="grid"><section><h2>Current time</h2><div class="value" id="time">—</div></section><section><h2>Display</h2><div class="value" id="display">—</div></section><section class="wide"><h2>Current quote</h2><div class="quote" id="quote">—</div></section><section><h2>Weather</h2><div class="value" id="weather">Waiting for display weather update…</div><label for="weather-units">Temperature unit</label><select id="weather-units" onchange="setWeatherUnits(this.value)"><option value="imperial">Fahrenheit (°F)</option><option value="metric">Celsius (°C)</option></select></section><section><h2>Schedule</h2><div class="value" id="schedule">—</div></section><section><h2>Widgets</h2><div class="value">Clock: <span id="clock-state">—</span></div><button id="clock-toggle" type="button" onclick="toggleWidget('clock')">Loading…</button><div class="value">Quote: <span id="quote-state">—</span></div><button id="quote-toggle" type="button" onclick="toggleWidget('quote')">Loading…</button><div class="value">Weather: <span id="weather-state">—</span></div><button id="weather-toggle" type="button" onclick="toggleWidget('weather')">Loading…</button></section></div></main>
+  <div class="grid"><section><h2>Current time</h2><div class="value" id="time">—</div></section><section><h2>Display</h2><div class="value" id="display">—</div></section><section class="wide"><h2>Current quote</h2><div class="quote" id="quote">—</div></section><section><h2>Weather</h2><div class="value" id="weather">Waiting for display weather update…</div><label for="weather-units">Temperature unit</label><select id="weather-units" onchange="setWeatherUnits(this.value)"><option value="imperial">Fahrenheit (°F)</option><option value="metric">Celsius (°C)</option></select></section><section><h2>Display controls</h2><label for="brightness">Brightness: <span id="brightness-value">—</span>%</label><input id="brightness" type="range" min="0" max="100" oninput="brightnessValue(this.value)" onchange="setBrightness(this.value)"><div class="button-row"><button type="button" onclick="displayCommand('power','on')">Power on</button><button type="button" onclick="displayCommand('power','off')">Power off</button><button type="button" onclick="displayCommand('mode','wake')">Wake</button><button type="button" onclick="displayCommand('mode','sleep')">Sleep</button></div></section><section><h2>Schedule</h2><div class="value" id="schedule">—</div></section><section><h2>Widgets</h2><div class="value">Clock: <span id="clock-state">—</span></div><button id="clock-toggle" type="button" onclick="toggleWidget('clock')">Loading…</button><div class="value">Quote: <span id="quote-state">—</span></div><button id="quote-toggle" type="button" onclick="toggleWidget('quote')">Loading…</button><div class="value">Weather: <span id="weather-state">—</span></div><button id="weather-toggle" type="button" onclick="toggleWidget('weather')">Loading…</button><div class="value">Counters: <span id="counters-state">—</span></div><button id="counters-toggle" type="button" onclick="toggleWidget('counters')">Loading…</button></section></div></main>
   <script>
     const el = id => document.getElementById(id);
     function formatTime(value) { return new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value)); }
@@ -26,12 +26,14 @@
         const status = await response.json();
         el('time').textContent = formatTime(status.server_time);
         el('quote').textContent = status.quote || 'No quote is currently available.';
-        el('display').textContent = `${status.display.status}\n${status.display.mode} mode · ${status.display.brightness}% brightness`;
+        el('display').textContent = `${status.display.status} · power ${status.display.power}\n${status.display.mode} mode · ${status.display.brightness}% brightness`;
+        el('brightness').value = status.display.brightness;
+        el('brightness-value').textContent = status.display.brightness;
         el('weather').textContent = status.weather ? `${status.weather.temperature}°${status.weather.unit} · ${status.weather.icon}` : 'Weather data is not available yet.';
         el('weather-units').value = status.weather_units;
         el('weather-units').disabled = false;
         el('schedule').textContent = `Wake ${status.schedule.wake}\nDim ${status.schedule.dim}\nSleep ${status.schedule.sleep}`;
-        for (const widget of ['clock', 'quote', 'weather']) {
+        for (const widget of ['clock', 'quote', 'weather', 'counters']) {
           const enabled = status.widgets[widget];
           el(`${widget}-state`).textContent = enabled ? 'Enabled' : 'Disabled';
           el(`${widget}-toggle`).textContent = enabled ? `Disable ${widget}` : `Enable ${widget}`;
@@ -64,6 +66,20 @@
         el('updated').textContent = 'Could not update the weather unit.';
         el('weather-units').disabled = false;
       }
+    }
+    function brightnessValue(value) { el('brightness-value').textContent = value; }
+    async function setBrightness(value) { await post('/api/dashboard/display/brightness', { brightness: Number(value) }, 'Brightness update sent to display…'); }
+    async function displayCommand(kind, value) {
+      if (kind === 'power' && value === 'off' && !confirm('Turn the physical display off?')) return;
+      await post(`/api/dashboard/display/${kind}`, { [kind]: value }, 'Display update sent…');
+    }
+    async function post(url, body, message) {
+      try {
+        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (!response.ok) throw new Error();
+        el('updated').textContent = message;
+        setTimeout(load, 400);
+      } catch (error) { el('updated').textContent = 'Could not update the display.'; }
     }
     load(); setInterval(load, 30000);
   </script>
