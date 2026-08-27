@@ -15,7 +15,7 @@
 </head>
 <body>
   <main><header><div><h1>Wall Display</h1><p class="sub" id="updated">Connecting…</p></div></header>
-  <div class="grid"><section><h2>Current time</h2><div class="value" id="time">—</div></section><section><h2>Display</h2><div class="value" id="display">—</div></section><section class="wide"><h2>Current quote</h2><div class="quote" id="quote">—</div></section><section><h2>Weather</h2><div class="value" id="weather">Waiting for display weather update…</div></section><section><h2>Schedule</h2><div class="value" id="schedule">—</div></section></div></main>
+  <div class="grid"><section><h2>Current time</h2><div class="value" id="time">—</div></section><section><h2>Display</h2><div class="value" id="display">—</div></section><section class="wide"><h2>Current quote</h2><div class="quote" id="quote">—</div></section><section><h2>Weather</h2><div class="value" id="weather">Waiting for display weather update…</div></section><section><h2>Schedule</h2><div class="value" id="schedule">—</div></section><section><h2>Widgets</h2><div class="value">Clock: <span id="clock-state">—</span></div><button id="clock-toggle" type="button" onclick="toggleClock()">Loading…</button></section></div></main>
   <script>
     const el = id => document.getElementById(id);
     function formatTime(value) { return new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value)); }
@@ -29,8 +29,25 @@
         el('display').textContent = `${status.display.status}\n${status.display.mode} mode · ${status.display.brightness}% brightness`;
         el('weather').textContent = status.weather ? `${status.weather.temperature}° · ${status.weather.icon}` : 'Weather data is not available yet.';
         el('schedule').textContent = `Wake ${status.schedule.wake}\nDim ${status.schedule.dim}\nSleep ${status.schedule.sleep}`;
+        const clockEnabled = status.widgets.clock;
+        el('clock-state').textContent = clockEnabled ? 'Enabled' : 'Disabled';
+        el('clock-toggle').textContent = clockEnabled ? 'Disable clock' : 'Enable clock';
+        el('clock-toggle').disabled = false;
         el('updated').textContent = 'Live status · updated just now';
       } catch (error) { el('updated').textContent = 'Dashboard connection unavailable.'; }
+    }
+    async function toggleClock() {
+      const enabled = el('clock-state').textContent !== 'Enabled';
+      el('clock-toggle').disabled = true;
+      try {
+        const response = await fetch('/api/dashboard/widgets/clock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }) });
+        if (!response.ok) throw new Error();
+        el('updated').textContent = 'Clock update sent to display…';
+        setTimeout(load, 300);
+      } catch (error) {
+        el('updated').textContent = 'Could not update the clock.';
+        el('clock-toggle').disabled = false;
+      }
     }
     load(); setInterval(load, 30000);
   </script>

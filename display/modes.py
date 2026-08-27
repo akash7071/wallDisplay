@@ -11,6 +11,7 @@ from config import (
     COLOR_NIGHT_TEXT,
 )
 from display.brightness import set_brightness
+from services.dashboard_settings import is_clock_enabled
 from utils.scheduler import schedule_next_update
 
 
@@ -52,7 +53,8 @@ def go_to_sleep_mode(
     footer_frame.place_forget()
 
     clock_frame.place_forget()
-    clock_frame.place(relx=0.5, rely=0.5, anchor="center")
+    if is_clock_enabled():
+        clock_frame.place(relx=0.5, rely=0.5, anchor="center")
 
     time_label.configure(
         bg=COLOR_NIGHT_BACKGROUND,
@@ -92,7 +94,8 @@ def restore_day_mode(
     clock_frame.configure(bg=COLOR_BACKGROUND)
 
     clock_frame.place_forget()
-    clock_frame.place(relx=1.0, y=0, anchor="ne")
+    if is_clock_enabled():
+        clock_frame.place(relx=1.0, y=0, anchor="ne")
 
     time_label.configure(bg=COLOR_BACKGROUND, fg="black", font=("Arial", 70, "bold"))
 

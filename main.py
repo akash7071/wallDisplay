@@ -5,6 +5,7 @@
 # -------------------------
 import threading
 import sys
+from queue import Empty
 
 # Flask web logger
 from web_logger import app as web_app, ssl_context  # adjust path if needed
@@ -36,6 +37,8 @@ from display.modes import (
     restore_day_mode,
 )
 from config import ENABLE_COUNTERS_WIDGET
+from display.web_commands import command_queue
+from services.dashboard_settings import is_clock_enabled, set_clock_enabled
 
 # -------------------------
 # PARSE COMMAND-LINE ARGUMENTS
@@ -99,6 +102,10 @@ update_quote(root, label)
 update_weather(root, weather_frame)
 update_footer(root, footer_label1, footer_label2)
 
+# Honor dashboard widget settings before choosing the initial display mode.
+if not is_clock_enabled():
+    clock_frame.place_forget()
+
 # -------------------------
 # INITIAL MODE
 # -------------------------
@@ -125,6 +132,32 @@ else:
     )
     show_counters()
     refresh_counters()
+
+
+# -------------------------
+# DASHBOARD COMMANDS
+# -------------------------
+def apply_dashboard_commands():
+    """Apply web commands on Tk's main thread."""
+    while True:
+        try:
+            action, value = command_queue.get_nowait()
+        except Empty:
+            break
+
+        if action == "set_clock_enabled":
+            enabled = set_clock_enabled(value)["widgets"]["clock"]
+            clock_frame.place_forget()
+            if enabled:
+                if is_sleep_time():
+                    clock_frame.place(relx=0.5, rely=0.5, anchor="center")
+                else:
+                    clock_frame.place(relx=1.0, y=0, anchor="ne")
+
+    root.after(150, apply_dashboard_commands)
+
+
+apply_dashboard_commands()
 
 # -------------------------
 # MAIN LOOP

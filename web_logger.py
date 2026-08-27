@@ -16,6 +16,8 @@ from config import (
 from display.brightness import get_last_requested_brightness
 from display.modes import is_sleep_time
 from services.weather_service import get_latest_weather
+from services.dashboard_settings import load_settings
+from display.web_commands import command_queue
 
 app = Flask(__name__)
 
@@ -60,7 +62,18 @@ def dashboard_status():
             "dim": f"{DIM_HOUR:02d}:00",
             "sleep": f"{SLEEP_START_HOUR:02d}:00",
         },
+        "widgets": load_settings()["widgets"],
     })
+
+
+@app.route("/api/dashboard/widgets/clock", methods=["POST"])
+def set_clock_widget():
+    data = request.get_json(silent=True) or {}
+    enabled = data.get("enabled")
+    if not isinstance(enabled, bool):
+        return jsonify({"error": "'enabled' must be true or false"}), 400
+    command_queue.put(("set_clock_enabled", enabled))
+    return jsonify({"status": "queued", "enabled": enabled}), 202
 
 # API endpoint to get a quote notification
 @app.route("/api/send_quote_notification")
