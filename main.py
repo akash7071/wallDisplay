@@ -30,7 +30,11 @@ from ui.quote import update_quote
 from ui.weather import update_weather
 from ui.counters_widget import create_counters_widget
 
-from services.quote_service import save_keep_quote_list
+from services.quote_service import (
+    save_keep_quote_list,
+    set_current_quote,
+    get_and_save_random_quote,
+)
 from display.modes import (
     dim_brightness,
     is_dim_time,
@@ -232,6 +236,14 @@ def apply_dashboard_commands():
             if enabled:
                 apply_automatic_mode()
             schedule_manager.rebuild()
+
+        if action == "set_current_quote":
+            set_current_quote(value)
+            label.config(text=value)
+
+        if action == "next_random_quote":
+            new_quote = get_and_save_random_quote()
+            label.config(text=new_quote)
 
     root.after(150, apply_dashboard_commands)
 

@@ -1,6 +1,15 @@
 from flask import Flask, render_template, redirect, request, jsonify
 from services.counters_service import mark_done, get_status
-from services.quote_service import get_current_quote, get_and_save_random_quote
+from services.quote_service import (
+    get_current_quote,
+    get_and_save_random_quote,
+    get_all_quotes,
+    add_quote,
+    delete_quote,
+    set_current_quote,
+    sync_with_google_keep,
+)
+from auth.keep_client import is_authenticated as is_keep_authenticated
 from datetime import date, datetime
 import ssl
 import os
@@ -161,6 +170,73 @@ def set_dashboard_automation():
     command_queue.put(("set_automation_enabled", enabled))
     return jsonify({"status": "queued", "enabled": enabled}), 202
 
+
+# -------------------------
+# QUOTE LIBRARY & MANAGEMENT APIs
+# -------------------------
+@app.route("/api/quotes", methods=["GET"])
+def list_quotes():
+    quotes = get_all_quotes()
+    return jsonify({
+        "quotes": quotes,
+        "count": len(quotes),
+        "current": get_current_quote(),
+        "keep_connected": is_keep_authenticated(),
+    })
+
+
+@app.route("/api/quotes", methods=["POST"])
+def create_quote():
+    data = request.get_json(silent=True) or {}
+    quote_text = data.get("quote", "").strip()
+    if not quote_text:
+        return jsonify({"error": "Quote text is required"}), 400
+    success, result = add_quote(quote_text)
+    if not success:
+        return jsonify({"error": result}), 400
+    return jsonify({"status": "added", "data": result}), 201
+
+
+@app.route("/api/quotes", methods=["DELETE"])
+def remove_quote():
+    data = request.get_json(silent=True) or {}
+    quote_text = data.get("quote", "").strip()
+    if not quote_text:
+        return jsonify({"error": "Quote text is required"}), 400
+    success, result = delete_quote(quote_text)
+    if not success:
+        return jsonify({"error": result}), 404
+    current = get_current_quote()
+    command_queue.put(("set_current_quote", current))
+    return jsonify({"status": "deleted", "data": result, "new_current": current}), 200
+
+
+@app.route("/api/quotes/current", methods=["POST"])
+def set_active_quote():
+    data = request.get_json(silent=True) or {}
+    quote_text = data.get("quote", "").strip()
+    if not quote_text:
+        return jsonify({"error": "Quote text is required"}), 400
+    set_current_quote(quote_text)
+    command_queue.put(("set_current_quote", quote_text))
+    return jsonify({"status": "queued", "quote": quote_text}), 202
+
+
+@app.route("/api/quotes/random", methods=["POST"])
+def cycle_random_quote():
+    quote = get_and_save_random_quote()
+    command_queue.put(("set_current_quote", quote))
+    return jsonify({"status": "queued", "quote": quote}), 202
+
+
+@app.route("/api/quotes/sync", methods=["POST"])
+def sync_quotes():
+    success, result = sync_with_google_keep()
+    if not success:
+        return jsonify({"error": result}), 400
+    return jsonify({"status": "synced", "data": result}), 200
+
+
 # API endpoint to get a quote notification
 @app.route("/api/send_quote_notification")
 def send_quote_notification():
@@ -177,17 +253,20 @@ def send_quote_notification():
 def quote_page():
     return render_template("quote.html", quote=get_current_quote())
 
+
 # Counters page
 @app.route("/counters")
 def counters():
     statuses = get_status()
     return render_template("counters.html", statuses=statuses, date=date)
 
+
 # Mark a task done (default today)
 @app.route("/mark/<task>")
 def mark(task):
     mark_done(task, source="web")
     return redirect("/counters")
+
 
 # Mark a task with a custom date
 @app.route("/mark_custom", methods=["POST"])

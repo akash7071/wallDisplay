@@ -4,29 +4,453 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Wall Display Dashboard</title>
   <style>
-    :root { color-scheme: dark; --card: #1c2431; --muted: #aab5c5; }
-    * { box-sizing: border-box; } body { margin: 0; background: #10151d; color: #f5f7fa; font: 16px system-ui, sans-serif; }
-    main { max-width: 980px; margin: auto; padding: 24px 16px 48px; } header { display: flex; gap: 16px; justify-content: space-between; align-items: start; margin-bottom: 24px; }
-    h1 { margin: 0; font-size: 1.7rem; } .sub { color: var(--muted); margin: 4px 0 0; } .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
-    .wide { grid-column: span 2; } section { background: var(--card); border-radius: 16px; padding: 18px; } h2 { font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
-    .value { font-size: 1.25rem; line-height: 1.4; white-space: pre-wrap; } .quote { font-size: 1.05rem; line-height: 1.55; } button, select, input { border: 1px solid #536174; background: transparent; color: #f5f7fa; padding: 8px 11px; border-radius: 8px; font: inherit; } select { display: block; margin-top: 6px; width: 100%; } input[type=range] { padding: 0; width: 100%; } .button-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    @media (max-width: 560px) { .wide { grid-column: span 1; } header { align-items: center; } }
+    :root {
+      color-scheme: dark;
+      --bg: #0d1117;
+      --card: #161b22;
+      --card-hover: #1c2128;
+      --border: #30363d;
+      --muted: #8b949e;
+      --text: #f0f6fc;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --success: #3fb950;
+      --danger: #f85149;
+      --warning: #d29922;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+    }
+    main {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+    header {
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .sub {
+      color: var(--muted);
+      margin: 4px 0 0;
+      font-size: 0.88rem;
+    }
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .wide {
+      grid-column: span 2;
+    }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    h2 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0;
+    }
+    .badge {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .badge-success {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--success);
+    }
+    .badge-muted {
+      background: rgba(139, 148, 158, 0.15);
+      color: var(--muted);
+    }
+    .value {
+      font-size: 1.25rem;
+      font-weight: 500;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+    .quote-display {
+      font-size: 1.15rem;
+      font-style: italic;
+      line-height: 1.6;
+      color: #ffd700;
+      border-left: 3px solid #ffd700;
+      padding-left: 14px;
+      margin: 8px 0 16px;
+    }
+    button, select, input, textarea {
+      border: 1px solid var(--border);
+      background: #21262d;
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font: inherit;
+      font-size: 0.9rem;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    button {
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    button:hover:not(:disabled) {
+      background: #30363d;
+      border-color: #8b949e;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    button.primary {
+      background: #1f6feb;
+      border-color: #388bfd;
+      color: #fff;
+    }
+    button.primary:hover:not(:disabled) {
+      background: #388bfd;
+    }
+    button.danger {
+      color: var(--danger);
+      border-color: rgba(248, 81, 73, 0.4);
+    }
+    button.danger:hover:not(:disabled) {
+      background: rgba(248, 81, 73, 0.15);
+      border-color: var(--danger);
+    }
+    button.small {
+      padding: 4px 9px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+    }
+    select, input[type=time], input[type=text], textarea {
+      width: 100%;
+      margin-top: 6px;
+      background: #0d1117;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+    label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: block;
+      margin-top: 10px;
+    }
+    input[type=range] {
+      padding: 0;
+      width: 100%;
+      background: transparent;
+      accent-color: var(--accent);
+      margin: 8px 0;
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .search-bar {
+      margin-bottom: 12px;
+    }
+    .quotes-scroll-box {
+      max-height: 400px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 4px;
+      margin-top: 12px;
+    }
+    .quotes-scroll-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    .quotes-scroll-box::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+    .quote-item {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.15s;
+    }
+    .quote-item.active-quote {
+      border-color: #ffd700;
+      background: rgba(255, 215, 0, 0.03);
+    }
+    .quote-item-text {
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
+    .quote-item-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .quote-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .add-quote-panel {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 12px;
+      display: none;
+    }
+    .widget-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+    }
+    .widget-row:last-child {
+      border-bottom: none;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    @media (max-width: 640px) {
+      .wide { grid-column: span 1; }
+      header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .button-row { flex-direction: column; }
+      .button-row button { width: 100%; }
+    }
   </style>
 </head>
 <body>
-  <main><header><div><h1>Wall Display</h1><p class="sub" id="updated">Connecting…</p></div></header>
-  <div class="grid"><section><h2>Current time</h2><div class="value" id="time">—</div></section><section><h2>Display</h2><div class="value" id="display">—</div></section><section class="wide"><h2>Current quote</h2><div class="quote" id="quote">—</div></section><section><h2>Weather</h2><div class="value" id="weather">Waiting for display weather update…</div><label for="weather-units">Temperature unit</label><select id="weather-units" onchange="setWeatherUnits(this.value)"><option value="imperial">Fahrenheit (°F)</option><option value="metric">Celsius (°C)</option></select></section><section><h2>Display controls</h2><label for="brightness">Brightness: <span id="brightness-value">—</span>%</label><input id="brightness" type="range" min="0" max="100" oninput="brightnessValue(this.value)" onchange="setBrightness(this.value)"><div class="button-row"><button type="button" onclick="displayCommand('power','on')">Power on</button><button type="button" onclick="displayCommand('power','off')">Power off</button><button type="button" onclick="displayCommand('mode','wake')">Wake</button><button type="button" onclick="displayCommand('mode','sleep')">Sleep</button></div></section><section><h2>Automation schedule</h2><label><input id="automation-enabled" type="checkbox" onchange="setAutomation(this.checked)"> Automation enabled</label><label for="wake-time">Wake</label><input id="wake-time" type="time"><label for="dim-time">Dim</label><input id="dim-time" type="time"><label for="sleep-time">Sleep</label><input id="sleep-time" type="time"><div class="button-row"><button type="button" onclick="saveSchedule()">Save schedule</button></div></section><section><h2>Widgets</h2><div class="value">Clock: <span id="clock-state">—</span></div><button id="clock-toggle" type="button" onclick="toggleWidget('clock')">Loading…</button><div class="value">Quote: <span id="quote-state">—</span></div><button id="quote-toggle" type="button" onclick="toggleWidget('quote')">Loading…</button><div class="value">Weather: <span id="weather-state">—</span></div><button id="weather-toggle" type="button" onclick="toggleWidget('weather')">Loading…</button><div class="value">Counters: <span id="counters-state">—</span></div><button id="counters-toggle" type="button" onclick="toggleWidget('counters')">Loading…</button></section></div></main>
+  <main>
+    <header>
+      <div>
+        <h1>Wall Display Control Panel</h1>
+        <p class="sub" id="updated">Connecting…</p>
+      </div>
+      <div>
+        <a href="/quote" style="color:var(--accent); text-decoration:none; font-size:0.9rem; margin-right:12px;">Quotes View ↗</a>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Status & Time -->
+      <section>
+        <div class="card-header">
+          <h2>Current Time</h2>
+          <span class="badge" id="mode-badge">Active</span>
+        </div>
+        <div class="value" id="time">—</div>
+      </section>
+
+      <!-- Display State -->
+      <section>
+        <div class="card-header">
+          <h2>Display Status</h2>
+          <span class="badge" id="power-badge">Power: On</span>
+        </div>
+        <div class="value" id="display">—</div>
+      </section>
+
+      <!-- Weather -->
+      <section>
+        <div class="card-header">
+          <h2>Weather</h2>
+          <span class="badge badge-muted" id="weather-observed">Live</span>
+        </div>
+        <div class="value" id="weather">Waiting for weather update…</div>
+        <label for="weather-units">Temperature Unit</label>
+        <select id="weather-units" onchange="setWeatherUnits(this.value)">
+          <option value="imperial">Fahrenheit (°F)</option>
+          <option value="metric">Celsius (°C)</option>
+        </select>
+      </section>
+
+      <!-- Display Controls -->
+      <section>
+        <div class="card-header">
+          <h2>Display Controls</h2>
+        </div>
+        <label for="brightness">Brightness: <strong id="brightness-value">—</strong>%</label>
+        <input id="brightness" type="range" min="0" max="100" oninput="brightnessValue(this.value)" onchange="setBrightness(this.value)">
+        <div class="button-row">
+          <button type="button" onclick="displayCommand('power','on')">Power On</button>
+          <button type="button" onclick="displayCommand('power','off')">Power Off</button>
+          <button type="button" onclick="displayCommand('mode','wake')">Wake Mode</button>
+          <button type="button" onclick="displayCommand('mode','sleep')">Sleep Mode</button>
+        </div>
+      </section>
+
+      <!-- Automation Schedule -->
+      <section>
+        <div class="card-header">
+          <h2>Automation Schedule</h2>
+        </div>
+        <label style="margin-top:0; cursor:pointer;">
+          <input id="automation-enabled" type="checkbox" onchange="setAutomation(this.checked)"> Schedule Transitions Enabled
+        </label>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+          <div>
+            <label for="wake-time">Wake</label>
+            <input id="wake-time" type="time">
+          </div>
+          <div>
+            <label for="dim-time">Dim</label>
+            <input id="dim-time" type="time">
+          </div>
+          <div>
+            <label for="sleep-time">Sleep</label>
+            <input id="sleep-time" type="time">
+          </div>
+        </div>
+        <div class="button-row">
+          <button type="button" class="primary" onclick="saveSchedule()">Save Schedule</button>
+        </div>
+      </section>
+
+      <!-- Widgets Toggle -->
+      <section>
+        <div class="card-header">
+          <h2>Widgets Visibility</h2>
+        </div>
+        <div class="widget-row">
+          <span>Clock</span>
+          <button id="clock-toggle" class="small" type="button" onclick="toggleWidget('clock')">Loading…</button>
+        </div>
+        <div class="widget-row">
+          <span>Quote</span>
+          <button id="quote-toggle" class="small" type="button" onclick="toggleWidget('quote')">Loading…</button>
+        </div>
+        <div class="widget-row">
+          <span>Weather</span>
+          <button id="weather-toggle" class="small" type="button" onclick="toggleWidget('weather')">Loading…</button>
+        </div>
+      </section>
+
+      <!-- Active Quote Card -->
+      <section class="full-width">
+        <div class="card-header">
+          <h2>Currently Displayed Quote</h2>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="small primary" onclick="nextRandomQuote()">🎲 Next Random Quote</button>
+          </div>
+        </div>
+        <div class="quote-display" id="quote">—</div>
+      </section>
+
+      <!-- Quote Library & Management -->
+      <section class="full-width">
+        <div class="card-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <h2>Quote Library</h2>
+            <span class="badge" id="quote-count-badge">0 Quotes</span>
+            <span class="badge" id="keep-sync-badge">Checking Keep…</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="small" onclick="toggleAddQuotePanel()">+ Add Quote</button>
+            <button type="button" class="small" id="sync-btn" onclick="syncKeepQuotes()">🔄 Sync Keep</button>
+          </div>
+        </div>
+
+        <!-- Add Quote Form (Collapsible) -->
+        <div id="add-quote-panel" class="add-quote-panel">
+          <label style="margin-top:0;">New Quote Text:</label>
+          <textarea id="new-quote-text" placeholder="Enter quote text and author (e.g. &quot;Stay hungry, stay foolish. - Steve Jobs&quot;)"></textarea>
+          <div class="button-row" style="margin-top:8px;">
+            <button type="button" class="primary small" onclick="submitAddQuote()">Save to Library</button>
+            <button type="button" class="small" onclick="toggleAddQuotePanel()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Search / Filter -->
+        <div class="search-bar">
+          <input type="text" id="quote-search" placeholder="🔍 Filter quotes by keyword or author…" oninput="filterQuotes()">
+        </div>
+
+        <!-- Quotes List -->
+        <div class="quotes-scroll-box" id="quotes-list">
+          <div class="empty-state">Loading quote library…</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
   <script>
     const el = id => document.getElementById(id);
-    function formatTime(value) { return new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value)); }
+    let allQuotes = [];
+    let currentActiveQuote = "";
+
+    function formatTime(value) {
+      return new Intl.DateTimeFormat(undefined, {
+        weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit'
+      }).format(new Date(value));
+    }
+
     async function load() {
       try {
         const response = await fetch('/api/dashboard/status');
         if (!response.ok) throw new Error();
         const status = await response.json();
+
         el('time').textContent = formatTime(status.server_time);
-        el('quote').textContent = status.quote || 'No quote is currently available.';
-        el('display').textContent = `${status.display.status} · power ${status.display.power}\n${status.display.mode} mode · ${status.display.brightness}% brightness`;
+        currentActiveQuote = status.quote || '';
+        el('quote').textContent = currentActiveQuote || 'No quote is currently available.';
+        
+        el('display').textContent = `${status.display.status} · ${status.display.mode} mode\n${status.display.brightness}% brightness`;
+        el('mode-badge').textContent = status.display.mode.toUpperCase();
+        el('power-badge').textContent = `Power: ${status.display.power.toUpperCase()}`;
+        el('power-badge').className = status.display.power === 'on' ? 'badge badge-success' : 'badge danger';
+
         el('brightness').value = status.display.brightness;
         el('brightness-value').textContent = status.display.brightness;
         el('weather').textContent = status.weather ? `${status.weather.temperature}°${status.weather.unit} · ${status.weather.icon}` : 'Weather data is not available yet.';
@@ -36,32 +460,226 @@
         el('wake-time').value = status.schedule.wake;
         el('dim-time').value = status.schedule.dim;
         el('sleep-time').value = status.schedule.sleep;
-        for (const widget of ['clock', 'quote', 'weather', 'counters']) {
+
+        for (const widget of ['clock', 'quote', 'weather']) {
           const enabled = status.widgets[widget];
-          el(`${widget}-state`).textContent = enabled ? 'Enabled' : 'Disabled';
-          el(`${widget}-toggle`).textContent = enabled ? `Disable ${widget}` : `Enable ${widget}`;
-          el(`${widget}-toggle`).disabled = false;
+          const btn = el(`${widget}-toggle`);
+          if (btn) {
+            btn.textContent = enabled ? 'Enabled' : 'Disabled';
+            btn.className = enabled ? 'small primary' : 'small';
+            btn.disabled = false;
+          }
         }
         el('updated').textContent = 'Live status · updated just now';
-      } catch (error) { el('updated').textContent = 'Dashboard connection unavailable.'; }
+      } catch (error) {
+        el('updated').textContent = 'Dashboard connection unavailable.';
+      }
     }
-    async function toggleWidget(widget) {
-      const enabled = el(`${widget}-state`).textContent !== 'Enabled';
-      el(`${widget}-toggle`).disabled = true;
+
+    async function loadQuoteLibrary() {
       try {
-        const response = await fetch(`/api/dashboard/widgets/${widget}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }) });
+        const res = await fetch('/api/quotes');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        allQuotes = data.quotes || [];
+        currentActiveQuote = data.current || currentActiveQuote;
+        
+        el('quote-count-badge').textContent = `${allQuotes.length} Quotes`;
+        
+        const syncBadge = el('keep-sync-badge');
+        if (data.keep_connected) {
+          syncBadge.textContent = 'Keep Connected ✓';
+          syncBadge.className = 'badge badge-success';
+        } else {
+          syncBadge.textContent = 'Local Library';
+          syncBadge.className = 'badge badge-muted';
+        }
+
+        renderQuotes(allQuotes);
+      } catch (err) {
+        el('quotes-list').innerHTML = '<div class="empty-state">Could not load quote library.</div>';
+      }
+    }
+
+    function renderQuotes(quotes) {
+      const container = el('quotes-list');
+      if (!quotes.length) {
+        container.innerHTML = '<div class="empty-state">No quotes match your filter.</div>';
+        return;
+      }
+
+      container.innerHTML = quotes.map((q, idx) => {
+        const isActive = q === currentActiveQuote;
+        const escaped = escapeHtml(q);
+        return `
+          <div class="quote-item ${isActive ? 'active-quote' : ''}">
+            <div class="quote-item-text">${escaped}</div>
+            <div class="quote-item-footer">
+              <div>
+                ${isActive ? '<span class="badge badge-success">Currently On Screen</span>' : ''}
+              </div>
+              <div class="quote-actions">
+                ${!isActive ? `<button type="button" class="small" onclick="setActiveQuote(${idx})">Show on Screen</button>` : ''}
+                <button type="button" class="small danger" onclick="deleteQuoteItem(${idx})">Delete</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterQuotes() {
+      const query = (el('quote-search').value || '').toLowerCase().trim();
+      if (!query) {
+        renderQuotes(allQuotes);
+        return;
+      }
+      const filtered = allQuotes.filter(q => q.toLowerCase().includes(query));
+      renderQuotes(filtered);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function toggleAddQuotePanel() {
+      const panel = el('add-quote-panel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+      if (panel.style.display === 'block') {
+        el('new-quote-text').focus();
+      }
+    }
+
+    async function submitAddQuote() {
+      const text = el('new-quote-text').value.trim();
+      if (!text) {
+        alert('Please enter quote text.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/quotes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quote: text })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to add quote');
+        el('new-quote-text').value = '';
+        toggleAddQuotePanel();
+        el('updated').textContent = 'Quote added to library!';
+        await loadQuoteLibrary();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function deleteQuoteItem(idx) {
+      const currentQuery = (el('quote-search').value || '').toLowerCase().trim();
+      const currentList = currentQuery ? allQuotes.filter(q => q.toLowerCase().includes(currentQuery)) : allQuotes;
+      const quote = currentList[idx];
+      if (!quote) return;
+
+      if (!confirm(`Delete this quote from your library?\n\n"${quote.slice(0, 80)}..."`)) return;
+
+      try {
+        const res = await fetch('/api/quotes', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quote: quote })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to delete quote');
+        el('updated').textContent = 'Quote deleted.';
+        await load();
+        await loadQuoteLibrary();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function setActiveQuote(idx) {
+      const currentQuery = (el('quote-search').value || '').toLowerCase().trim();
+      const currentList = currentQuery ? allQuotes.filter(q => q.toLowerCase().includes(currentQuery)) : allQuotes;
+      const quote = currentList[idx];
+      if (!quote) return;
+
+      try {
+        const res = await fetch('/api/quotes/current', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quote: quote })
+        });
+        if (!res.ok) throw new Error();
+        currentActiveQuote = quote;
+        el('quote').textContent = quote;
+        el('updated').textContent = 'Active quote updated on display!';
+        filterQuotes();
+      } catch (err) {
+        alert('Could not update display quote.');
+      }
+    }
+
+    async function nextRandomQuote() {
+      try {
+        const res = await fetch('/api/quotes/random', { method: 'POST' });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        currentActiveQuote = data.quote;
+        el('quote').textContent = data.quote;
+        el('updated').textContent = 'Display quote updated!';
+        filterQuotes();
+      } catch (err) {
+        alert('Could not cycle quote.');
+      }
+    }
+
+    async function syncKeepQuotes() {
+      const btn = el('sync-btn');
+      btn.disabled = true;
+      btn.textContent = 'Syncing…';
+      try {
+        const res = await fetch('/api/quotes/sync', { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Sync failed');
+        el('updated').textContent = `Keep sync complete (${data.data.count} quotes)`;
+        await loadQuoteLibrary();
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 Sync Keep';
+      }
+    }
+
+    async function toggleWidget(widget) {
+      const btn = el(`${widget}-toggle`);
+      const enabled = btn.textContent !== 'Enabled';
+      btn.disabled = true;
+      try {
+        const response = await fetch(`/api/dashboard/widgets/${widget}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled })
+        });
         if (!response.ok) throw new Error();
         el('updated').textContent = `${widget[0].toUpperCase() + widget.slice(1)} update sent to display…`;
         setTimeout(load, 300);
       } catch (error) {
         el('updated').textContent = `Could not update the ${widget}.`;
-        el(`${widget}-toggle`).disabled = false;
+        btn.disabled = false;
       }
     }
+
     async function setWeatherUnits(units) {
       el('weather-units').disabled = true;
       try {
-        const response = await fetch('/api/dashboard/weather/units', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ units }) });
+        const response = await fetch('/api/dashboard/weather/units', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ units })
+        });
         if (!response.ok) throw new Error();
         el('updated').textContent = 'Weather unit update sent to display…';
         setTimeout(load, 800);
@@ -70,26 +688,51 @@
         el('weather-units').disabled = false;
       }
     }
-    function brightnessValue(value) { el('brightness-value').textContent = value; }
-    async function setBrightness(value) { await post('/api/dashboard/display/brightness', { brightness: Number(value) }, 'Brightness update sent to display…'); }
+
+    function brightnessValue(value) {
+      el('brightness-value').textContent = value;
+    }
+
+    async function setBrightness(value) {
+      await post('/api/dashboard/display/brightness', { brightness: Number(value) }, 'Brightness update sent to display…');
+    }
+
     async function displayCommand(kind, value) {
       if (kind === 'power' && value === 'off' && !confirm('Turn the physical display off?')) return;
       await post(`/api/dashboard/display/${kind}`, { [kind]: value }, 'Display update sent…');
     }
+
     async function saveSchedule() {
-      const schedule = { wake: el('wake-time').value, dim: el('dim-time').value, sleep: el('sleep-time').value };
+      const schedule = {
+        wake: el('wake-time').value,
+        dim: el('dim-time').value,
+        sleep: el('sleep-time').value
+      };
       await post('/api/dashboard/schedule', { schedule }, 'Schedule update sent to display…');
     }
-    async function setAutomation(enabled) { await post('/api/dashboard/automation', { enabled }, 'Automation update sent to display…'); }
+
+    async function setAutomation(enabled) {
+      await post('/api/dashboard/automation', { enabled }, 'Automation update sent to display…');
+    }
+
     async function post(url, body, message) {
       try {
-        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
         if (!response.ok) throw new Error();
         el('updated').textContent = message;
         setTimeout(load, 400);
-      } catch (error) { el('updated').textContent = 'Could not update the display.'; }
+      } catch (error) {
+        el('updated').textContent = 'Could not update the display.';
+      }
     }
-    load(); setInterval(load, 30000);
+
+    load();
+    loadQuoteLibrary();
+    setInterval(load, 30000);
   </script>
 </body>
 </html>

@@ -48,9 +48,10 @@ This checklist tracks current implementation status and serves as a handoff guid
 | :--- | :---: | :--- |
 | **View Active Quote** | ✅ Completed | Shown on web dashboard, `/quote`, and Tkinter UI. |
 | **Browser Push Notifications** | ✅ Completed | Web notification support implemented on `/quote` with hourly refresh options. |
-| **View All Quotes Library** | ⚠️ Partial | CLI export supported via `python main.py quote_list=true` (`save_keep_quote_list()`). Web browsing page/modal for quote collection is not yet built. |
-| **Add / Delete Quotes** | 📋 Planned | Quotes are currently read-only via Google Keep note ("Wisdom"). Needs web UI forms to add/remove quotes directly or via Google Keep API. |
-| **Google Keep Configuration UI** | 📋 Planned | `KEEP_USER` and `MASTER_TOKEN` are loaded from `.env`. Needs a secure settings form in the web UI. |
+| **View All Quotes Library** | ✅ Completed | Interactive web library with search & real-time filtering in Web Dashboard (`GET /api/quotes`). |
+| **Add / Delete Quotes** | ✅ Completed | Web UI forms & REST endpoints (`POST /api/quotes`, `DELETE /api/quotes`) with Google Keep sync. |
+| **Instant Display Quote Rotation** | ✅ Completed | "Show on Screen" and "Next Random Quote" buttons update the wall screen live via `command_queue`. |
+| **Google Keep Sync & Offline Fallback** | ✅ Completed | Resilient Keep integration with local caching in `data/quotes.json` and manual sync (`POST /api/quotes/sync`). |
 
 ---
 
@@ -149,6 +150,14 @@ The Flask server (`https://<ip>:8000`) exposes the following endpoints:
 ### Widgets & Preferences
 - `POST /api/dashboard/widgets/<clock|quote|weather|counters>`: Body: `{"enabled": true | false}`
 - `POST /api/dashboard/weather/units`: Body: `{"units": "imperial" | "metric"}`
+
+### Quote Management & Library
+- `GET /api/quotes`: Returns quote library list, active quote, count, and Keep connection status.
+- `POST /api/quotes`: Body: `{"quote": "..."}` - Adds quote to library and Google Keep.
+- `DELETE /api/quotes`: Body: `{"quote": "..."}` - Deletes quote from library and Google Keep.
+- `POST /api/quotes/current`: Body: `{"quote": "..."}` - Instantly sets active display quote on screen.
+- `POST /api/quotes/random`: Cycles screen immediately to next random quote.
+- `POST /api/quotes/sync`: Triggers manual sync with Google Keep note.
 
 ---
 
