@@ -32,6 +32,8 @@ from ui.counters_widget import create_counters_widget
 
 from services.quote_service import save_keep_quote_list
 from display.modes import (
+    dim_brightness,
+    is_dim_time,
     is_sleep_time,
     go_to_sleep_mode,
     restore_day_mode,
@@ -48,7 +50,10 @@ from services.dashboard_settings import (
     set_quote_enabled,
     set_weather_enabled,
     set_weather_units,
+    set_automation_enabled,
+    set_schedule,
 )
+from display.schedule_manager import DisplayScheduleManager
 from display.brightness import set_brightness
 from display.power import set_display_power
 from config import DISPLAY_POWER_ON, DISPLAY_POWER_OFF
@@ -124,34 +129,39 @@ if not is_weather_enabled():
     weather_container.place_forget()
 
 # -------------------------
-# INITIAL MODE
+# DISPLAY MODES AND SCHEDULE
 # -------------------------
-if is_sleep_time():
-    hide_counters()
-    go_to_sleep_mode(
-        root,
-        clock_frame,
-        time_label,
-        label,
-        date_label,
-        weather_container,
-        footer_frame,
-        show_counters,
-        hide_counters,
-    )
-else:
+def wake_display():
     restore_day_mode(
-        root,
-        clock_frame,
-        time_label,
-        label,
-        date_label,
-        weather_container,
-        footer_frame,
-        show_counters,
-        hide_counters,
+        root, clock_frame, time_label, label, date_label, weather_container, footer_frame,
+        show_counters, hide_counters,
     )
-    show_counters()
+
+
+def sleep_display():
+    go_to_sleep_mode(
+        root, clock_frame, time_label, label, date_label, weather_container, footer_frame,
+        show_counters, hide_counters,
+    )
+
+
+def dim_display():
+    dim_brightness(root, clock_frame, time_label, label, date_label, weather_container, footer_frame)
+
+
+def apply_automatic_mode():
+    if is_sleep_time():
+        sleep_display()
+    else:
+        wake_display()
+        if is_dim_time():
+            dim_display()
+
+
+schedule_manager = DisplayScheduleManager(root, wake_display, dim_display, sleep_display)
+apply_automatic_mode()
+schedule_manager.rebuild()
+if not is_sleep_time():
     refresh_counters()
 
 
@@ -208,11 +218,20 @@ def apply_dashboard_commands():
 
         if action == "set_display_mode":
             if value == "sleep":
-                go_to_sleep_mode(root, clock_frame, time_label, label, date_label,
-                                 weather_container, footer_frame, show_counters, hide_counters)
+                sleep_display()
             else:
-                restore_day_mode(root, clock_frame, time_label, label, date_label,
-                                 weather_container, footer_frame, show_counters, hide_counters)
+                wake_display()
+
+        if action == "set_schedule":
+            set_schedule(value)
+            apply_automatic_mode()
+            schedule_manager.rebuild()
+
+        if action == "set_automation_enabled":
+            enabled = set_automation_enabled(value)["automation_enabled"]
+            if enabled:
+                apply_automatic_mode()
+            schedule_manager.rebuild()
 
     root.after(150, apply_dashboard_commands)
 

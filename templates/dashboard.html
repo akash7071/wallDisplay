@@ -15,7 +15,7 @@
 </head>
 <body>
   <main><header><div><h1>Wall Display</h1><p class="sub" id="updated">Connecting…</p></div></header>
-  <div class="grid"><section><h2>Current time</h2><div class="value" id="time">—</div></section><section><h2>Display</h2><div class="value" id="display">—</div></section><section class="wide"><h2>Current quote</h2><div class="quote" id="quote">—</div></section><section><h2>Weather</h2><div class="value" id="weather">Waiting for display weather update…</div><label for="weather-units">Temperature unit</label><select id="weather-units" onchange="setWeatherUnits(this.value)"><option value="imperial">Fahrenheit (°F)</option><option value="metric">Celsius (°C)</option></select></section><section><h2>Display controls</h2><label for="brightness">Brightness: <span id="brightness-value">—</span>%</label><input id="brightness" type="range" min="0" max="100" oninput="brightnessValue(this.value)" onchange="setBrightness(this.value)"><div class="button-row"><button type="button" onclick="displayCommand('power','on')">Power on</button><button type="button" onclick="displayCommand('power','off')">Power off</button><button type="button" onclick="displayCommand('mode','wake')">Wake</button><button type="button" onclick="displayCommand('mode','sleep')">Sleep</button></div></section><section><h2>Schedule</h2><div class="value" id="schedule">—</div></section><section><h2>Widgets</h2><div class="value">Clock: <span id="clock-state">—</span></div><button id="clock-toggle" type="button" onclick="toggleWidget('clock')">Loading…</button><div class="value">Quote: <span id="quote-state">—</span></div><button id="quote-toggle" type="button" onclick="toggleWidget('quote')">Loading…</button><div class="value">Weather: <span id="weather-state">—</span></div><button id="weather-toggle" type="button" onclick="toggleWidget('weather')">Loading…</button><div class="value">Counters: <span id="counters-state">—</span></div><button id="counters-toggle" type="button" onclick="toggleWidget('counters')">Loading…</button></section></div></main>
+  <div class="grid"><section><h2>Current time</h2><div class="value" id="time">—</div></section><section><h2>Display</h2><div class="value" id="display">—</div></section><section class="wide"><h2>Current quote</h2><div class="quote" id="quote">—</div></section><section><h2>Weather</h2><div class="value" id="weather">Waiting for display weather update…</div><label for="weather-units">Temperature unit</label><select id="weather-units" onchange="setWeatherUnits(this.value)"><option value="imperial">Fahrenheit (°F)</option><option value="metric">Celsius (°C)</option></select></section><section><h2>Display controls</h2><label for="brightness">Brightness: <span id="brightness-value">—</span>%</label><input id="brightness" type="range" min="0" max="100" oninput="brightnessValue(this.value)" onchange="setBrightness(this.value)"><div class="button-row"><button type="button" onclick="displayCommand('power','on')">Power on</button><button type="button" onclick="displayCommand('power','off')">Power off</button><button type="button" onclick="displayCommand('mode','wake')">Wake</button><button type="button" onclick="displayCommand('mode','sleep')">Sleep</button></div></section><section><h2>Automation schedule</h2><label><input id="automation-enabled" type="checkbox" onchange="setAutomation(this.checked)"> Automation enabled</label><label for="wake-time">Wake</label><input id="wake-time" type="time"><label for="dim-time">Dim</label><input id="dim-time" type="time"><label for="sleep-time">Sleep</label><input id="sleep-time" type="time"><div class="button-row"><button type="button" onclick="saveSchedule()">Save schedule</button></div></section><section><h2>Widgets</h2><div class="value">Clock: <span id="clock-state">—</span></div><button id="clock-toggle" type="button" onclick="toggleWidget('clock')">Loading…</button><div class="value">Quote: <span id="quote-state">—</span></div><button id="quote-toggle" type="button" onclick="toggleWidget('quote')">Loading…</button><div class="value">Weather: <span id="weather-state">—</span></div><button id="weather-toggle" type="button" onclick="toggleWidget('weather')">Loading…</button><div class="value">Counters: <span id="counters-state">—</span></div><button id="counters-toggle" type="button" onclick="toggleWidget('counters')">Loading…</button></section></div></main>
   <script>
     const el = id => document.getElementById(id);
     function formatTime(value) { return new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value)); }
@@ -32,7 +32,10 @@
         el('weather').textContent = status.weather ? `${status.weather.temperature}°${status.weather.unit} · ${status.weather.icon}` : 'Weather data is not available yet.';
         el('weather-units').value = status.weather_units;
         el('weather-units').disabled = false;
-        el('schedule').textContent = `Wake ${status.schedule.wake}\nDim ${status.schedule.dim}\nSleep ${status.schedule.sleep}`;
+        el('automation-enabled').checked = status.automation_enabled;
+        el('wake-time').value = status.schedule.wake;
+        el('dim-time').value = status.schedule.dim;
+        el('sleep-time').value = status.schedule.sleep;
         for (const widget of ['clock', 'quote', 'weather', 'counters']) {
           const enabled = status.widgets[widget];
           el(`${widget}-state`).textContent = enabled ? 'Enabled' : 'Disabled';
@@ -73,6 +76,11 @@
       if (kind === 'power' && value === 'off' && !confirm('Turn the physical display off?')) return;
       await post(`/api/dashboard/display/${kind}`, { [kind]: value }, 'Display update sent…');
     }
+    async function saveSchedule() {
+      const schedule = { wake: el('wake-time').value, dim: el('dim-time').value, sleep: el('sleep-time').value };
+      await post('/api/dashboard/schedule', { schedule }, 'Schedule update sent to display…');
+    }
+    async function setAutomation(enabled) { await post('/api/dashboard/automation', { enabled }, 'Automation update sent to display…'); }
     async function post(url, body, message) {
       try {
         const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });

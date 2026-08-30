@@ -9,14 +9,11 @@ from config import (
     BRIGHTNESS_DAY,
     BRIGHTNESS_EVENING,
     BRIGHTNESS_SLEEP,
-    DIM_HOUR,
-    SLEEP_END_HOUR,
-    SLEEP_START_HOUR,
 )
 from display.brightness import get_last_requested_brightness
 from display.power import get_last_requested_power
 from display.runtime_state import get_mode
-from display.modes import is_sleep_time
+from display.modes import is_dim_time, is_sleep_time
 from services.weather_service import get_latest_weather
 from services.dashboard_settings import load_settings
 from display.web_commands import command_queue
@@ -34,7 +31,7 @@ def current_mode():
     inferred_mode = "day"
     if is_sleep_time():
         inferred_mode = "sleep"
-    elif DIM_HOUR <= datetime.now().hour < SLEEP_START_HOUR:
+    elif is_dim_time():
         inferred_mode = "dim"
     return get_mode(inferred_mode)
 
@@ -63,11 +60,8 @@ def dashboard_status():
             "mode": mode,
             "power": "on" if power_state in (None, 1) else "off",
         },
-        "schedule": {
-            "wake": f"{SLEEP_END_HOUR:02d}:00",
-            "dim": f"{DIM_HOUR:02d}:00",
-            "sleep": f"{SLEEP_START_HOUR:02d}:00",
-        },
+        "schedule": settings["schedule"],
+        "automation_enabled": settings["automation_enabled"],
         "widgets": settings["widgets"],
         "weather_units": settings["weather_units"],
     })
@@ -140,6 +134,32 @@ def set_dashboard_mode():
         return jsonify({"error": "'mode' must be 'sleep' or 'wake'"}), 400
     command_queue.put(("set_display_mode", mode))
     return jsonify({"status": "queued", "mode": mode}), 202
+
+
+@app.route("/api/dashboard/schedule", methods=["POST"])
+def set_dashboard_schedule():
+    data = request.get_json(silent=True) or {}
+    schedule = data.get("schedule")
+    if not isinstance(schedule, dict) or set(schedule) != {"wake", "dim", "sleep"}:
+        return jsonify({"error": "Schedule requires wake, dim, and sleep times"}), 400
+    try:
+        parsed = [datetime.strptime(value, "%H:%M") for value in schedule.values()]
+    except (TypeError, ValueError):
+        return jsonify({"error": "Schedule times must use HH:MM"}), 400
+    if len({item.time() for item in parsed}) != 3:
+        return jsonify({"error": "Wake, dim, and sleep times must be different"}), 400
+    command_queue.put(("set_schedule", schedule))
+    return jsonify({"status": "queued", "schedule": schedule}), 202
+
+
+@app.route("/api/dashboard/automation", methods=["POST"])
+def set_dashboard_automation():
+    data = request.get_json(silent=True) or {}
+    enabled = data.get("enabled")
+    if not isinstance(enabled, bool):
+        return jsonify({"error": "'enabled' must be true or false"}), 400
+    command_queue.put(("set_automation_enabled", enabled))
+    return jsonify({"status": "queued", "enabled": enabled}), 202
 
 # API endpoint to get a quote notification
 @app.route("/api/send_quote_notification")

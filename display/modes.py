@@ -1,8 +1,5 @@
 from datetime import datetime, time
 from config import (
-    SLEEP_START_HOUR,
-    SLEEP_END_HOUR,
-    DIM_HOUR,
     BRIGHTNESS_DAY,
     BRIGHTNESS_EVENING,
     BRIGHTNESS_SLEEP,
@@ -12,19 +9,35 @@ from config import (
 )
 from display.brightness import set_brightness
 from display.runtime_state import set_mode
-from services.dashboard_settings import is_clock_enabled, is_quote_enabled, is_weather_enabled
-from utils.scheduler import schedule_next_update
+from services.dashboard_settings import (
+    is_clock_enabled,
+    is_quote_enabled,
+    is_weather_enabled,
+    load_settings,
+)
 
 
 # -------------------------
 # TIME CHECK
 # -------------------------
 def is_sleep_time():
+    schedule = load_settings()["schedule"]
     now = datetime.now().time()
-    start = time(SLEEP_START_HOUR, 0)
-    end = time(SLEEP_END_HOUR, 0)
+    start = datetime.strptime(schedule["sleep"], "%H:%M").time()
+    end = datetime.strptime(schedule["wake"], "%H:%M").time()
+    return _in_time_range(now, start, end)
 
-    if SLEEP_START_HOUR < SLEEP_END_HOUR:
+
+def is_dim_time():
+    schedule = load_settings()["schedule"]
+    now = datetime.now().time()
+    start = datetime.strptime(schedule["dim"], "%H:%M").time()
+    end = datetime.strptime(schedule["sleep"], "%H:%M").time()
+    return not is_sleep_time() and _in_time_range(now, start, end)
+
+
+def _in_time_range(now, start, end):
+    if start < end:
         return start <= now < end
     return now >= start or now < end
 
@@ -68,23 +81,6 @@ def go_to_sleep_mode(
         font=("Arial", 210, "bold"),
     )
 
-    schedule_next_update(
-        root,
-        SLEEP_END_HOUR,
-        lambda: restore_day_mode(
-            root,
-            clock_frame,
-            time_label,
-            label,
-            date_label,
-            weather_container,
-            footer_frame,
-            show_counters,
-            hide_counters,
-        ),
-    )
-
-
 def restore_day_mode(
     root,
     clock_frame,
@@ -122,48 +118,6 @@ def restore_day_mode(
     footer_frame.place(relx=1.0, rely=1.0, anchor="se")
     if show_counters:
         show_counters()
-
-    schedule_next_update(
-        root,
-        DIM_HOUR,
-        lambda: dim_brightness(
-            root,
-            clock_frame,
-            time_label,
-            label,
-            date_label,
-            weather_container,
-            footer_frame,
-        ),
-    )
-
-    schedule_next_update(
-        root,
-        SLEEP_START_HOUR,
-        lambda: go_to_sleep_mode(
-            root,
-            clock_frame,
-            time_label,
-            label,
-            date_label,
-            weather_container,
-            footer_frame,
-            show_counters,
-            hide_counters,
-        ),
-    )
-
-    if DIM_HOUR <= datetime.now().hour < SLEEP_START_HOUR:
-        dim_brightness(
-            root,
-            clock_frame,
-            time_label,
-            label,
-            date_label,
-            weather_container,
-            footer_frame,
-        )
-
 
 def dim_brightness(
     root,
