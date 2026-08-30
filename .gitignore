@@ -1,4 +1,18 @@
 .env
 __pycache__/
+*/__pycache__/
+*/**/__pycache__/
 *.py[cod]
+*$py.class
+*.pyc
+
+# Local runtime data
 data/dashboard_settings.json
+data/current_quote.json
+data/keep_quotes.txt
+data/*.tmp
+
+# Environment & local files
+*.local
+venv/
+.venv/
