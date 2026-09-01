@@ -20,6 +20,7 @@ DEFAULT_SETTINGS = {
     "footer_text": {
         "line1": FOOTER_TEXT_LINE1,
         "line2": FOOTER_TEXT_LINE2,
+        "highlight_mode": "auto",
     },
 }
 
@@ -38,10 +39,13 @@ def load_settings():
         footer_text = settings.get("footer_text", {})
         line1 = footer_text.get("line1", FOOTER_TEXT_LINE1)
         line2 = footer_text.get("line2", FOOTER_TEXT_LINE2)
+        highlight_mode = footer_text.get("highlight_mode", "auto")
         if not isinstance(line1, str):
             line1 = FOOTER_TEXT_LINE1
         if not isinstance(line2, str):
             line2 = FOOTER_TEXT_LINE2
+        if highlight_mode not in ("auto", "line1", "line2"):
+            highlight_mode = "auto"
 
         return {
             "widgets": {
@@ -59,6 +63,7 @@ def load_settings():
             "footer_text": {
                 "line1": line1,
                 "line2": line2,
+                "highlight_mode": highlight_mode,
             },
         }
     except (OSError, json.JSONDecodeError):
@@ -164,11 +169,17 @@ def set_automation_enabled(enabled):
     return settings
 
 
-def set_footer_text(line1, line2):
+def set_footer_text(line1, line2, highlight_mode="auto"):
     if not isinstance(line1, str) or not isinstance(line2, str):
         raise ValueError("Footer text lines must be strings")
+    if highlight_mode not in ("auto", "line1", "line2"):
+        highlight_mode = "auto"
     settings = load_settings()
-    settings["footer_text"] = {"line1": line1.strip(), "line2": line2.strip()}
+    settings["footer_text"] = {
+        "line1": line1.strip(),
+        "line2": line2.strip(),
+        "highlight_mode": highlight_mode,
+    }
     _save(settings)
     return settings
 

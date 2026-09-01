@@ -97,8 +97,16 @@ footer_label2.pack(anchor="e", padx=40, pady=(0, 20))
 
 
 def update_footer(root, label1, label2, schedule_next=True):
-    week_number = datetime.now().isocalendar()[1]
-    highlight_first = week_number % 2 == 1
+    footer_data = get_footer_text()
+    mode = footer_data.get("highlight_mode", "auto")
+
+    if mode == "line1":
+        highlight_first = True
+    elif mode == "line2":
+        highlight_first = False
+    else:  # "auto"
+        week_number = datetime.now().isocalendar()[1]
+        highlight_first = week_number % 2 == 1
 
     if highlight_first:
         label1.config(fg=FOOTER_HIGHLIGHT_FG, font=(FOOTER_FONT[0], FOOTER_FONT[1], "bold"))

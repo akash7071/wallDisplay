@@ -82,12 +82,15 @@ def set_dashboard_footer():
     data = request.get_json(silent=True) or {}
     line1 = data.get("line1")
     line2 = data.get("line2")
+    highlight_mode = data.get("highlight_mode", "auto")
     if not isinstance(line1, str) or not isinstance(line2, str):
         return jsonify({"error": "'line1' and 'line2' must be string values"}), 400
+    if highlight_mode not in ("auto", "line1", "line2"):
+        return jsonify({"error": "'highlight_mode' must be 'auto', 'line1', or 'line2'"}), 400
     line1_clean = line1.strip()
     line2_clean = line2.strip()
-    command_queue.put(("set_footer_text", {"line1": line1_clean, "line2": line2_clean}))
-    return jsonify({"status": "queued", "footer_text": {"line1": line1_clean, "line2": line2_clean}}), 202
+    command_queue.put(("set_footer_text", {"line1": line1_clean, "line2": line2_clean, "highlight_mode": highlight_mode}))
+    return jsonify({"status": "queued", "footer_text": {"line1": line1_clean, "line2": line2_clean, "highlight_mode": highlight_mode}}), 202
 
 
 @app.route("/api/dashboard/widgets/clock", methods=["POST"])

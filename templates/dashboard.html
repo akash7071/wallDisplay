@@ -391,6 +391,14 @@
           <label for="footer-line2">Line 2 (Even Weeks)</label>
           <input id="footer-line2" type="text" placeholder="Line 2 text...">
         </div>
+        <div style="margin-top: 8px;">
+          <label for="footer-highlight-mode">Highlight Mode</label>
+          <select id="footer-highlight-mode">
+            <option value="auto">Auto (Bi-Weekly ISO Week)</option>
+            <option value="line1">Highlight Line 1 Always</option>
+            <option value="line2">Highlight Line 2 Always</option>
+          </select>
+        </div>
         <div class="button-row">
           <button type="button" class="primary" onclick="saveFooterText()">Save Footer Lines</button>
         </div>
@@ -497,18 +505,29 @@
           if (document.activeElement !== el('footer-line2')) {
             el('footer-line2').value = status.footer_text.line2 || '';
           }
-          const now = new Date();
-          const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-          const dayNum = d.getUTCDay() || 7;
-          d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-          const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-          const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-          const isOdd = weekNo % 2 === 1;
-
+          if (document.activeElement !== el('footer-highlight-mode')) {
+            el('footer-highlight-mode').value = status.footer_text.highlight_mode || 'auto';
+          }
+          const mode = status.footer_text.highlight_mode || 'auto';
           const weekBadge = el('footer-week-badge');
           if (weekBadge) {
-            weekBadge.textContent = isOdd ? `W${weekNo}: Line 1 Active` : `W${weekNo}: Line 2 Active`;
-            weekBadge.className = 'badge badge-success';
+            if (mode === 'line1') {
+              weekBadge.textContent = 'Line 1 Always Active';
+              weekBadge.className = 'badge badge-success';
+            } else if (mode === 'line2') {
+              weekBadge.textContent = 'Line 2 Always Active';
+              weekBadge.className = 'badge badge-success';
+            } else {
+              const now = new Date();
+              const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+              const dayNum = d.getUTCDay() || 7;
+              d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+              const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+              const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+              const isOdd = weekNo % 2 === 1;
+              weekBadge.textContent = isOdd ? `Auto (W${weekNo}: Line 1 Active)` : `Auto (W${weekNo}: Line 2 Active)`;
+              weekBadge.className = 'badge badge-success';
+            }
           }
         }
 
@@ -760,7 +779,8 @@
     async function saveFooterText() {
       const line1 = el('footer-line1').value;
       const line2 = el('footer-line2').value;
-      await post('/api/dashboard/footer', { line1, line2 }, 'Footer text update sent to display…');
+      const highlight_mode = el('footer-highlight-mode').value;
+      await post('/api/dashboard/footer', { line1, line2, highlight_mode }, 'Footer text update sent to display…');
     }
 
     async function post(url, body, message) {

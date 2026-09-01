@@ -247,7 +247,11 @@ def apply_dashboard_commands():
             label.config(text=new_quote)
 
         if action == "set_footer_text":
-            set_footer_text(value["line1"], value["line2"])
+            set_footer_text(
+                value["line1"],
+                value["line2"],
+                value.get("highlight_mode", "auto"),
+            )
             footer_label1.config(text=value["line1"])
             footer_label2.config(text=value["line2"])
             update_footer(root, footer_label1, footer_label2, schedule_next=False)
