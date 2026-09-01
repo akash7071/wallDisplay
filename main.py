@@ -56,6 +56,7 @@ from services.dashboard_settings import (
     set_weather_units,
     set_automation_enabled,
     set_schedule,
+    set_footer_text,
 )
 from display.schedule_manager import DisplayScheduleManager
 from display.brightness import set_brightness
@@ -244,6 +245,12 @@ def apply_dashboard_commands():
         if action == "next_random_quote":
             new_quote = get_and_save_random_quote()
             label.config(text=new_quote)
+
+        if action == "set_footer_text":
+            set_footer_text(value["line1"], value["line2"])
+            footer_label1.config(text=value["line1"])
+            footer_label2.config(text=value["line2"])
+            update_footer(root, footer_label1, footer_label2, schedule_next=False)
 
     root.after(150, apply_dashboard_commands)
 

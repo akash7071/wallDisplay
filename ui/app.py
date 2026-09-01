@@ -9,6 +9,8 @@ from config import (
     FOOTER_HIGHLIGHT_FG,
 )
 
+from services.dashboard_settings import get_footer_text
+
 # -------------------------
 # ROOT WINDOW
 # -------------------------
@@ -70,9 +72,10 @@ date_label.pack(anchor="e", padx=40, pady=(0, 10))
 footer_frame = tk.Frame(root, bg=COLOR_BACKGROUND)
 footer_frame.place(relx=1.0, rely=1.0, anchor="se")
 
+initial_footer = get_footer_text()
 footer_label1 = tk.Label(
     footer_frame,
-    text=FOOTER_TEXT_LINE1,
+    text=initial_footer.get("line1", FOOTER_TEXT_LINE1),
     font=FOOTER_FONT,
     fg=FOOTER_NORMAL_FG,
     bg=COLOR_BACKGROUND,
@@ -83,7 +86,7 @@ footer_label1.pack(anchor="e", padx=40, pady=(0, 0))
 
 footer_label2 = tk.Label(
     footer_frame,
-    text=FOOTER_TEXT_LINE2,
+    text=initial_footer.get("line2", FOOTER_TEXT_LINE2),
     font=FOOTER_FONT,
     fg=FOOTER_NORMAL_FG,
     bg=COLOR_BACKGROUND,
@@ -93,7 +96,7 @@ footer_label2 = tk.Label(
 footer_label2.pack(anchor="e", padx=40, pady=(0, 20))
 
 
-def update_footer(root, label1, label2):
+def update_footer(root, label1, label2, schedule_next=True):
     week_number = datetime.now().isocalendar()[1]
     highlight_first = week_number % 2 == 1
 
@@ -104,7 +107,8 @@ def update_footer(root, label1, label2):
         label1.config(fg=FOOTER_NORMAL_FG, font=FOOTER_FONT)
         label2.config(fg=FOOTER_HIGHLIGHT_FG, font=(FOOTER_FONT[0], FOOTER_FONT[1], "bold"))
 
-    root.after(60 * 1000, lambda: update_footer(root, label1, label2))
+    if schedule_next:
+        root.after(60 * 1000, lambda: update_footer(root, label1, label2))
 
 # -------------------------
 # EXIT BINDING

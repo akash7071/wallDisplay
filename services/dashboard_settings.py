@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-from config import DIM_HOUR, SLEEP_END_HOUR, SLEEP_START_HOUR
+from config import DIM_HOUR, SLEEP_END_HOUR, SLEEP_START_HOUR, FOOTER_TEXT_LINE1, FOOTER_TEXT_LINE2
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SETTINGS_FILE = BASE_DIR / "data" / "dashboard_settings.json"
@@ -16,6 +16,10 @@ DEFAULT_SETTINGS = {
         "wake": f"{SLEEP_END_HOUR:02d}:00",
         "dim": f"{DIM_HOUR:02d}:00",
         "sleep": f"{SLEEP_START_HOUR:02d}:00",
+    },
+    "footer_text": {
+        "line1": FOOTER_TEXT_LINE1,
+        "line2": FOOTER_TEXT_LINE2,
     },
 }
 
@@ -31,6 +35,14 @@ def load_settings():
         if weather_units not in ("imperial", "metric"):
             weather_units = "imperial"
         schedule = settings.get("schedule", {})
+        footer_text = settings.get("footer_text", {})
+        line1 = footer_text.get("line1", FOOTER_TEXT_LINE1)
+        line2 = footer_text.get("line2", FOOTER_TEXT_LINE2)
+        if not isinstance(line1, str):
+            line1 = FOOTER_TEXT_LINE1
+        if not isinstance(line2, str):
+            line2 = FOOTER_TEXT_LINE2
+
         return {
             "widgets": {
                 "clock": bool(widgets.get("clock", True)),
@@ -44,6 +56,10 @@ def load_settings():
                 name: _valid_time(schedule.get(name, DEFAULT_SETTINGS["schedule"][name]), name)
                 for name in ("wake", "dim", "sleep")
             },
+            "footer_text": {
+                "line1": line1,
+                "line2": line2,
+            },
         }
     except (OSError, json.JSONDecodeError):
         return _default_settings()
@@ -55,6 +71,7 @@ def _default_settings():
         "weather_units": DEFAULT_SETTINGS["weather_units"],
         "automation_enabled": DEFAULT_SETTINGS["automation_enabled"],
         "schedule": dict(DEFAULT_SETTINGS["schedule"]),
+        "footer_text": dict(DEFAULT_SETTINGS["footer_text"]),
     }
 
 
@@ -145,3 +162,17 @@ def set_automation_enabled(enabled):
     settings["automation_enabled"] = bool(enabled)
     _save(settings)
     return settings
+
+
+def set_footer_text(line1, line2):
+    if not isinstance(line1, str) or not isinstance(line2, str):
+        raise ValueError("Footer text lines must be strings")
+    settings = load_settings()
+    settings["footer_text"] = {"line1": line1.strip(), "line2": line2.strip()}
+    _save(settings)
+    return settings
+
+
+def get_footer_text():
+    return load_settings()["footer_text"]
+

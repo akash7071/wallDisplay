@@ -52,6 +52,7 @@ This checklist tracks current implementation status and serves as a handoff guid
 | **Add / Delete Quotes** | ✅ Completed | Web UI forms & REST endpoints (`POST /api/quotes`, `DELETE /api/quotes`) with Google Keep sync. |
 | **Instant Display Quote Rotation** | ✅ Completed | "Show on Screen" and "Next Random Quote" buttons update the wall screen live via `command_queue`. |
 | **Google Keep Sync & Offline Fallback** | ✅ Completed | Resilient Keep integration with local caching in `data/quotes.json` and manual sync (`POST /api/quotes/sync`). |
+| **Images & Animated GIFs in Rotation** | 📋 Planned | Support static images (PNG/JPG) and animated GIFs via `Pillow` in place of quotes on selected days/rotation pool with web upload. |
 
 ---
 
@@ -76,7 +77,7 @@ This checklist tracks current implementation status and serves as a handoff guid
 | **City & Country Settings** | 📋 Planned | Statically defined in `.env` (`CITY_NAME`, `COUNTRY_CODE`). Needs web UI input fields with auto-reload. |
 | **OpenWeather API Key** | 📋 Planned | Configured in `.env` (`OPENWEATHER_API_KEY`). Needs web configuration field. |
 | **Preset Brightness Levels** | 📋 Planned | Day/Dim/Sleep presets (`BRIGHTNESS_DAY`, `BRIGHTNESS_EVENING`, `BRIGHTNESS_SLEEP`) hardcoded in `config.py`. |
-| **Footer Text Customization** | 📋 Planned | Alternating bi-weekly footer text (`FOOTER_TEXT_LINE1/2`) hardcoded in `.env`/`config.py`. |
+| **Footer Text Customization** | ✅ Completed | Configurable alternating bi-weekly footer lines (`line1`/`line2`) in web dashboard persisted to `dashboard_settings.json`. |
 
 ---
 
@@ -150,6 +151,7 @@ The Flask server (`https://<ip>:8000`) exposes the following endpoints:
 ### Widgets & Preferences
 - `POST /api/dashboard/widgets/<clock|quote|weather|counters>`: Body: `{"enabled": true | false}`
 - `POST /api/dashboard/weather/units`: Body: `{"units": "imperial" | "metric"}`
+- `POST /api/dashboard/footer`: Body: `{"line1": "...", "line2": "..."}`
 
 ### Quote Management & Library
 - `GET /api/quotes`: Returns quote library list, active quote, count, and Keep connection status.

@@ -73,7 +73,21 @@ def dashboard_status():
         "automation_enabled": settings["automation_enabled"],
         "widgets": settings["widgets"],
         "weather_units": settings["weather_units"],
+        "footer_text": settings["footer_text"],
     })
+
+
+@app.route("/api/dashboard/footer", methods=["POST"])
+def set_dashboard_footer():
+    data = request.get_json(silent=True) or {}
+    line1 = data.get("line1")
+    line2 = data.get("line2")
+    if not isinstance(line1, str) or not isinstance(line2, str):
+        return jsonify({"error": "'line1' and 'line2' must be string values"}), 400
+    line1_clean = line1.strip()
+    line2_clean = line2.strip()
+    command_queue.put(("set_footer_text", {"line1": line1_clean, "line2": line2_clean}))
+    return jsonify({"status": "queued", "footer_text": {"line1": line1_clean, "line2": line2_clean}}), 202
 
 
 @app.route("/api/dashboard/widgets/clock", methods=["POST"])

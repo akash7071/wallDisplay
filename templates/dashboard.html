@@ -377,6 +377,25 @@
         </div>
       </section>
 
+      <!-- Footer Text Schedule -->
+      <section>
+        <div class="card-header">
+          <h2>Footer Text (Alternating)</h2>
+          <span class="badge" id="footer-week-badge">Week Sync</span>
+        </div>
+        <div>
+          <label for="footer-line1">Line 1 (Odd Weeks)</label>
+          <input id="footer-line1" type="text" placeholder="Line 1 text...">
+        </div>
+        <div style="margin-top: 8px;">
+          <label for="footer-line2">Line 2 (Even Weeks)</label>
+          <input id="footer-line2" type="text" placeholder="Line 2 text...">
+        </div>
+        <div class="button-row">
+          <button type="button" class="primary" onclick="saveFooterText()">Save Footer Lines</button>
+        </div>
+      </section>
+
       <!-- Active Quote Card -->
       <section class="full-width">
         <div class="card-header">
@@ -470,6 +489,29 @@
             btn.disabled = false;
           }
         }
+
+        if (status.footer_text) {
+          if (document.activeElement !== el('footer-line1')) {
+            el('footer-line1').value = status.footer_text.line1 || '';
+          }
+          if (document.activeElement !== el('footer-line2')) {
+            el('footer-line2').value = status.footer_text.line2 || '';
+          }
+          const now = new Date();
+          const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+          const dayNum = d.getUTCDay() || 7;
+          d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+          const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+          const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+          const isOdd = weekNo % 2 === 1;
+
+          const weekBadge = el('footer-week-badge');
+          if (weekBadge) {
+            weekBadge.textContent = isOdd ? `W${weekNo}: Line 1 Active` : `W${weekNo}: Line 2 Active`;
+            weekBadge.className = 'badge badge-success';
+          }
+        }
+
         el('updated').textContent = 'Live status · updated just now';
       } catch (error) {
         el('updated').textContent = 'Dashboard connection unavailable.';
@@ -713,6 +755,12 @@
 
     async function setAutomation(enabled) {
       await post('/api/dashboard/automation', { enabled }, 'Automation update sent to display…');
+    }
+
+    async function saveFooterText() {
+      const line1 = el('footer-line1').value;
+      const line2 = el('footer-line2').value;
+      await post('/api/dashboard/footer', { line1, line2 }, 'Footer text update sent to display…');
     }
 
     async function post(url, body, message) {
