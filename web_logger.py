@@ -24,7 +24,7 @@ from display.power import get_last_requested_power
 from display.runtime_state import get_mode
 from display.modes import is_dim_time, is_sleep_time
 from services.weather_service import get_latest_weather
-from services.dashboard_settings import load_settings
+from services.dashboard_settings import load_settings, swap_footer_highlight
 from display.web_commands import command_queue
 
 app = Flask(__name__)
@@ -83,14 +83,29 @@ def set_dashboard_footer():
     line1 = data.get("line1")
     line2 = data.get("line2")
     highlight_mode = data.get("highlight_mode", "auto")
+    inverted = bool(data.get("inverted", False))
     if not isinstance(line1, str) or not isinstance(line2, str):
         return jsonify({"error": "'line1' and 'line2' must be string values"}), 400
     if highlight_mode not in ("auto", "line1", "line2"):
         return jsonify({"error": "'highlight_mode' must be 'auto', 'line1', or 'line2'"}), 400
     line1_clean = line1.strip()
     line2_clean = line2.strip()
-    command_queue.put(("set_footer_text", {"line1": line1_clean, "line2": line2_clean, "highlight_mode": highlight_mode}))
-    return jsonify({"status": "queued", "footer_text": {"line1": line1_clean, "line2": line2_clean, "highlight_mode": highlight_mode}}), 202
+    payload = {
+        "line1": line1_clean,
+        "line2": line2_clean,
+        "highlight_mode": highlight_mode,
+        "inverted": inverted,
+    }
+    command_queue.put(("set_footer_text", payload))
+    return jsonify({"status": "queued", "footer_text": payload}), 202
+
+
+@app.route("/api/dashboard/footer/swap", methods=["POST"])
+def swap_dashboard_footer():
+    settings = swap_footer_highlight()
+    footer_data = settings["footer_text"]
+    command_queue.put(("set_footer_text", footer_data))
+    return jsonify({"status": "queued", "footer_text": footer_data}), 202
 
 
 @app.route("/api/dashboard/widgets/clock", methods=["POST"])

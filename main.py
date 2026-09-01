@@ -251,6 +251,7 @@ def apply_dashboard_commands():
                 value["line1"],
                 value["line2"],
                 value.get("highlight_mode", "auto"),
+                value.get("inverted", False),
             )
             footer_label1.config(text=value["line1"])
             footer_label2.config(text=value["line2"])

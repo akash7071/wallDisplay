@@ -99,6 +99,7 @@ footer_label2.pack(anchor="e", padx=40, pady=(0, 20))
 def update_footer(root, label1, label2, schedule_next=True):
     footer_data = get_footer_text()
     mode = footer_data.get("highlight_mode", "auto")
+    inverted = footer_data.get("inverted", False)
 
     if mode == "line1":
         highlight_first = True
@@ -107,6 +108,8 @@ def update_footer(root, label1, label2, schedule_next=True):
     else:  # "auto"
         week_number = datetime.now().isocalendar()[1]
         highlight_first = week_number % 2 == 1
+        if inverted:
+            highlight_first = not highlight_first
 
     if highlight_first:
         label1.config(fg=FOOTER_HIGHLIGHT_FG, font=(FOOTER_FONT[0], FOOTER_FONT[1], "bold"))

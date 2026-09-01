@@ -401,6 +401,7 @@
         </div>
         <div class="button-row">
           <button type="button" class="primary" onclick="saveFooterText()">Save Footer Lines</button>
+          <button type="button" onclick="swapFooterHighlight()">⚡ Swap Active Line</button>
         </div>
       </section>
 
@@ -509,6 +510,7 @@
             el('footer-highlight-mode').value = status.footer_text.highlight_mode || 'auto';
           }
           const mode = status.footer_text.highlight_mode || 'auto';
+          const inverted = !!status.footer_text.inverted;
           const weekBadge = el('footer-week-badge');
           if (weekBadge) {
             if (mode === 'line1') {
@@ -524,8 +526,12 @@
               d.setUTCDate(d.getUTCDate() + 4 - dayNum);
               const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
               const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-              const isOdd = weekNo % 2 === 1;
-              weekBadge.textContent = isOdd ? `Auto (W${weekNo}: Line 1 Active)` : `Auto (W${weekNo}: Line 2 Active)`;
+              let activeLine = (weekNo % 2 === 1) ? 1 : 2;
+              if (inverted) {
+                activeLine = activeLine === 1 ? 2 : 1;
+              }
+              const swappedTag = inverted ? ' [Swapped]' : '';
+              weekBadge.textContent = `Auto (W${weekNo}: Line ${activeLine} Active${swappedTag})`;
               weekBadge.className = 'badge badge-success';
             }
           }
@@ -781,6 +787,10 @@
       const line2 = el('footer-line2').value;
       const highlight_mode = el('footer-highlight-mode').value;
       await post('/api/dashboard/footer', { line1, line2, highlight_mode }, 'Footer text update sent to display…');
+    }
+
+    async function swapFooterHighlight() {
+      await post('/api/dashboard/footer/swap', {}, 'Highlighted line swapped on display…');
     }
 
     async function post(url, body, message) {

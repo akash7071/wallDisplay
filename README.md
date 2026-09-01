@@ -152,6 +152,7 @@ The Flask server (`https://<ip>:8000`) exposes the following endpoints:
 - `POST /api/dashboard/widgets/<clock|quote|weather|counters>`: Body: `{"enabled": true | false}`
 - `POST /api/dashboard/weather/units`: Body: `{"units": "imperial" | "metric"}`
 - `POST /api/dashboard/footer`: Body: `{"line1": "...", "line2": "...", "highlight_mode": "auto" | "line1" | "line2"}`
+- `POST /api/dashboard/footer/swap`: Toggles/swaps active highlighted line immediately while preserving bi-weekly routine switching for future weeks.
 
 ### Quote Management & Library
 - `GET /api/quotes`: Returns quote library list, active quote, count, and Keep connection status.

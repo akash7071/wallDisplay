@@ -21,6 +21,7 @@ DEFAULT_SETTINGS = {
         "line1": FOOTER_TEXT_LINE1,
         "line2": FOOTER_TEXT_LINE2,
         "highlight_mode": "auto",
+        "inverted": False,
     },
 }
 
@@ -40,6 +41,7 @@ def load_settings():
         line1 = footer_text.get("line1", FOOTER_TEXT_LINE1)
         line2 = footer_text.get("line2", FOOTER_TEXT_LINE2)
         highlight_mode = footer_text.get("highlight_mode", "auto")
+        inverted = bool(footer_text.get("inverted", False))
         if not isinstance(line1, str):
             line1 = FOOTER_TEXT_LINE1
         if not isinstance(line2, str):
@@ -64,6 +66,7 @@ def load_settings():
                 "line1": line1,
                 "line2": line2,
                 "highlight_mode": highlight_mode,
+                "inverted": inverted,
             },
         }
     except (OSError, json.JSONDecodeError):
@@ -169,7 +172,7 @@ def set_automation_enabled(enabled):
     return settings
 
 
-def set_footer_text(line1, line2, highlight_mode="auto"):
+def set_footer_text(line1, line2, highlight_mode="auto", inverted=False):
     if not isinstance(line1, str) or not isinstance(line2, str):
         raise ValueError("Footer text lines must be strings")
     if highlight_mode not in ("auto", "line1", "line2"):
@@ -179,9 +182,21 @@ def set_footer_text(line1, line2, highlight_mode="auto"):
         "line1": line1.strip(),
         "line2": line2.strip(),
         "highlight_mode": highlight_mode,
+        "inverted": bool(inverted),
     }
     _save(settings)
     return settings
+
+
+def swap_footer_highlight():
+    footer_data = get_footer_text()
+    new_inverted = not footer_data.get("inverted", False)
+    return set_footer_text(
+        footer_data["line1"],
+        footer_data["line2"],
+        footer_data.get("highlight_mode", "auto"),
+        new_inverted,
+    )
 
 
 def get_footer_text():
