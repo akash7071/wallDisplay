@@ -2,6 +2,10 @@ import tkinter as tk
 from datetime import datetime
 from config import (
     COLOR_BACKGROUND,
+    COLOR_PRIMARY_TEXT,
+    COLOR_MUTED_TEXT,
+    FONT_FAMILY_PRIMARY,
+    FONT_FAMILY_QUOTE,
     FOOTER_TEXT_LINE1,
     FOOTER_TEXT_LINE2,
     FOOTER_FONT,
@@ -25,13 +29,13 @@ root.config(cursor="none")
 label = tk.Label(
     root,
     text="Loading...",
-    font=("Arial", 70, "bold"),
-    fg="black",
+    font=(FONT_FAMILY_QUOTE, 44, "bold"),
+    fg=COLOR_PRIMARY_TEXT,
     bg=COLOR_BACKGROUND,
-    wraplength=root.winfo_screenwidth() - 150,
+    wraplength=max(root.winfo_screenwidth() - 320, 600),
     justify="center",
 )
-label.pack(expand=True)
+label.pack(expand=True, padx=80, pady=40)
 
 # -------------------------
 # WEATHER (TOP-LEFT)
@@ -40,7 +44,7 @@ weather_container = tk.Frame(root, bg=COLOR_BACKGROUND)
 weather_container.place(relx=0.0, y=0, anchor="nw")
 
 weather_frame = tk.Frame(weather_container, bg=COLOR_BACKGROUND)
-weather_frame.pack(anchor="w", padx=40, pady=20)
+weather_frame.pack(anchor="w", padx=36, pady=24)
 
 # -------------------------
 # CLOCK (TOP-RIGHT)
@@ -50,21 +54,21 @@ clock_frame.place(relx=1.0, y=0, anchor="ne")
 
 time_label = tk.Label(
     clock_frame,
-    font=("Arial", 70, "bold"),
-    fg="black",
+    font=(FONT_FAMILY_PRIMARY, 68, "bold"),
+    fg=COLOR_PRIMARY_TEXT,
     bg=COLOR_BACKGROUND,
     anchor="e",
 )
-time_label.pack(anchor="e", padx=40, pady=(20, 0))
+time_label.pack(anchor="e", padx=36, pady=(24, 0))
 
 date_label = tk.Label(
     clock_frame,
-    font=("Arial", 30),
-    fg="black",
+    font=(FONT_FAMILY_PRIMARY, 22, "bold"),
+    fg=COLOR_MUTED_TEXT,
     bg=COLOR_BACKGROUND,
     anchor="e",
 )
-date_label.pack(anchor="e", padx=40, pady=(0, 10))
+date_label.pack(anchor="e", padx=36, pady=(2, 10))
 
 # -------------------------
 # FOOTER (BOTTOM-RIGHT)
@@ -82,7 +86,7 @@ footer_label1 = tk.Label(
     anchor="e",
     justify="right",
 )
-footer_label1.pack(anchor="e", padx=40, pady=(0, 0))
+footer_label1.pack(anchor="e", padx=36, pady=(0, 0))
 
 footer_label2 = tk.Label(
     footer_frame,
@@ -93,7 +97,7 @@ footer_label2 = tk.Label(
     anchor="e",
     justify="right",
 )
-footer_label2.pack(anchor="e", padx=40, pady=(0, 20))
+footer_label2.pack(anchor="e", padx=36, pady=(0, 20))
 
 
 def update_footer(root, label1, label2, schedule_next=True):

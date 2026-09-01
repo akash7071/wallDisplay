@@ -26,7 +26,7 @@ from ui.app import (
 )
 
 from ui.clock import update_time
-from ui.quote import update_quote
+from ui.quote import update_quote, apply_quote_text
 from ui.weather import update_weather
 from ui.counters_widget import create_counters_widget
 
@@ -193,7 +193,7 @@ def apply_dashboard_commands():
         if action == "set_quote_enabled":
             enabled = set_quote_enabled(value)["widgets"]["quote"]
             if enabled and not is_sleep_time():
-                label.pack(expand=True)
+                label.pack(expand=True, padx=80, pady=40)
             else:
                 label.pack_forget()
 
@@ -240,11 +240,11 @@ def apply_dashboard_commands():
 
         if action == "set_current_quote":
             set_current_quote(value)
-            label.config(text=value)
+            apply_quote_text(root, label, value)
 
         if action == "next_random_quote":
             new_quote = get_and_save_random_quote()
-            label.config(text=new_quote)
+            apply_quote_text(root, label, new_quote)
 
         if action == "set_footer_text":
             set_footer_text(

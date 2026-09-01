@@ -4,8 +4,12 @@ from config import (
     BRIGHTNESS_EVENING,
     BRIGHTNESS_SLEEP,
     COLOR_BACKGROUND,
+    COLOR_PRIMARY_TEXT,
+    COLOR_MUTED_TEXT,
     COLOR_NIGHT_BACKGROUND,
     COLOR_NIGHT_TEXT,
+    FONT_FAMILY_PRIMARY,
+    FONT_FAMILY_QUOTE,
 )
 from display.brightness import set_brightness
 from display.runtime_state import set_mode
@@ -78,8 +82,9 @@ def go_to_sleep_mode(
     time_label.configure(
         bg=COLOR_NIGHT_BACKGROUND,
         fg=COLOR_NIGHT_TEXT,
-        font=("Arial", 210, "bold"),
+        font=(FONT_FAMILY_PRIMARY, 210, "bold"),
     )
+
 
 def restore_day_mode(
     root,
@@ -104,13 +109,17 @@ def restore_day_mode(
     if is_clock_enabled():
         clock_frame.place(relx=1.0, y=0, anchor="ne")
 
-    time_label.configure(bg=COLOR_BACKGROUND, fg="black", font=("Arial", 70, "bold"))
+    time_label.configure(
+        bg=COLOR_BACKGROUND,
+        fg=COLOR_PRIMARY_TEXT,
+        font=(FONT_FAMILY_PRIMARY, 68, "bold"),
+    )
 
     if is_quote_enabled():
-        label.pack(expand=True)
+        label.pack(expand=True, padx=80, pady=40)
     else:
         label.pack_forget()
-    date_label.pack(anchor="e", padx=40, pady=(0, 10))
+    date_label.pack(anchor="e", padx=36, pady=(2, 10))
     if is_weather_enabled():
         weather_container.place(relx=0.0, y=0, anchor="nw")
     else:
@@ -118,6 +127,7 @@ def restore_day_mode(
     footer_frame.place(relx=1.0, rely=1.0, anchor="se")
     if show_counters:
         show_counters()
+
 
 def dim_brightness(
     root,

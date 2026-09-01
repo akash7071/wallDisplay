@@ -1,4 +1,6 @@
+import os
 import tkinter as tk
+from config import COLOR_MUTED_TEXT, COLOR_PRIMARY_TEXT, FONT_FAMILY_PRIMARY
 from services.weather_service import fetch_weather
 
 # -------------------------
