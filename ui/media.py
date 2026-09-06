@@ -33,7 +33,10 @@ class MediaRenderer:
         if max_w <= 0: max_w = 800
         if max_h <= 0: max_h = 600
         
-        img.thumbnail((max_w, max_h), Image.Resampling.LANCZOS)
+        # Calculate aspect ratio to fit the screen
+        ratio = min(max_w / img.width, max_h / img.height)
+        new_size = (int(img.width * ratio), int(img.height * ratio))
+        img = img.resize(new_size, Image.Resampling.LANCZOS)
         
         photo = ImageTk.PhotoImage(img)
         self.current_image = photo
@@ -49,10 +52,14 @@ class MediaRenderer:
             if max_w <= 0: max_w = 800
             if max_h <= 0: max_h = 600
             
+            # Calculate aspect ratio once based on first frame
+            ratio = min(max_w / img.width, max_h / img.height)
+            new_size = (int(img.width * ratio), int(img.height * ratio))
+            
             for frame_idx in range(img.n_frames):
                 img.seek(frame_idx)
                 frame_rgba = img.convert("RGBA")
-                frame_rgba.thumbnail((max_w, max_h), Image.Resampling.LANCZOS)
+                frame_rgba = frame_rgba.resize(new_size, Image.Resampling.LANCZOS)
                 self.frames.append(ImageTk.PhotoImage(frame_rgba))
         except EOFError:
             pass
