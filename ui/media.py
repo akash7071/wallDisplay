@@ -28,10 +28,11 @@ class MediaRenderer:
             self.current_image = None
 
     def _show_static_image(self, img):
-        max_w = self.root.winfo_screenwidth() - 200
-        max_h = self.root.winfo_screenheight() - 200
-        if max_w <= 0: max_w = 800
-        if max_h <= 0: max_h = 600
+        # Use a smaller percentage of screen width/height to avoid widget overlap
+        max_w = int(self.root.winfo_screenwidth() * 0.6)
+        max_h = int(self.root.winfo_screenheight() * 0.55)
+        if max_w <= 0: max_w = 600
+        if max_h <= 0: max_h = 400
         
         # Calculate aspect ratio to fit the screen
         ratio = min(max_w / img.width, max_h / img.height)
@@ -47,10 +48,11 @@ class MediaRenderer:
         try:
             self.delay = img.info.get('duration', 100) or 100
             
-            max_w = self.root.winfo_screenwidth() - 200
-            max_h = self.root.winfo_screenheight() - 200
-            if max_w <= 0: max_w = 800
-            if max_h <= 0: max_h = 600
+            # Use a smaller percentage of screen width/height to avoid widget overlap
+            max_w = int(self.root.winfo_screenwidth() * 0.6)
+            max_h = int(self.root.winfo_screenheight() * 0.55)
+            if max_w <= 0: max_w = 600
+            if max_h <= 0: max_h = 400
             
             # Calculate aspect ratio once based on first frame
             ratio = min(max_w / img.width, max_h / img.height)
