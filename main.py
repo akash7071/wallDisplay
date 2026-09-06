@@ -14,6 +14,7 @@ from web_logger import app as web_app, ssl_context  # adjust path if needed
 from ui.app import (
     root,
     label,
+    media_label,
     clock_frame,
     time_label,
     date_label,
@@ -29,12 +30,15 @@ from ui.clock import update_time
 from ui.quote import update_quote, apply_quote_text
 from ui.weather import update_weather
 from ui.counters_widget import create_counters_widget
+from ui.media import MediaRenderer
 
 from services.quote_service import (
     save_keep_quote_list,
     set_current_quote,
     get_and_save_random_quote,
 )
+from services.media_service import get_random_media, MEDIA_DIR
+import random
 from display.modes import (
     dim_brightness,
     is_dim_time,
@@ -118,10 +122,43 @@ def refresh_counters():
         root.after(60 * 60 * 1000, refresh_counters)  # refresh hourly
 
 # -------------------------
+# MEDIA RENDERER
+# -------------------------
+media_renderer = MediaRenderer(root, media_label)
+current_display_type = "quote"  # "quote" or "media"
+
+def rotate_content():
+    global current_display_type
+    
+    # Decide if we show media or quote
+    # Let's do 50/50 if media is available
+    media_file = get_random_media()
+    if media_file and random.random() < 0.5:
+        # Show media
+        current_display_type = "media"
+        label.pack_forget()
+        if is_quote_enabled() and not is_sleep_time():
+            media_label.pack(expand=True, padx=80, pady=40)
+        media_renderer.show_media(MEDIA_DIR / media_file)
+    else:
+        # Show quote
+        current_display_type = "quote"
+        media_label.pack_forget()
+        media_renderer.stop_animation()
+        if is_quote_enabled() and not is_sleep_time():
+            label.pack(expand=True, padx=80, pady=40)
+        new_quote = get_and_save_random_quote()
+        label.config(text=new_quote)
+    
+    # Schedule next rotation (e.g. every 9 hours, wait, the original update_quote had schedule_next_update)
+    from utils.scheduler import schedule_next_update
+    schedule_next_update(root, 9, rotate_content)
+
+# -------------------------
 # START UPDATES
 # -------------------------
 update_time(root, time_label, date_label)
-update_quote(root, label)
+rotate_content()
 update_weather(root, weather_frame)
 update_footer(root, footer_label1, footer_label2)
 
@@ -193,9 +230,13 @@ def apply_dashboard_commands():
         if action == "set_quote_enabled":
             enabled = set_quote_enabled(value)["widgets"]["quote"]
             if enabled and not is_sleep_time():
-                label.pack(expand=True, padx=80, pady=40)
+                if current_display_type == "quote":
+                    label.pack(expand=True, padx=80, pady=40)
+                else:
+                    media_label.pack(expand=True, padx=80, pady=40)
             else:
                 label.pack_forget()
+                media_label.pack_forget()
 
         if action == "set_weather_units":
             set_weather_units(value)
@@ -240,11 +281,28 @@ def apply_dashboard_commands():
 
         if action == "set_current_quote":
             set_current_quote(value)
+            current_display_type = "quote"
+            media_label.pack_forget()
+            media_renderer.stop_animation()
+            if is_quote_enabled() and not is_sleep_time():
+                label.pack(expand=True, padx=80, pady=40)
             apply_quote_text(root, label, value)
 
         if action == "next_random_quote":
+            current_display_type = "quote"
+            media_label.pack_forget()
+            media_renderer.stop_animation()
+            if is_quote_enabled() and not is_sleep_time():
+                label.pack(expand=True, padx=80, pady=40)
             new_quote = get_and_save_random_quote()
             apply_quote_text(root, label, new_quote)
+
+        if action == "show_media":
+            current_display_type = "media"
+            label.pack_forget()
+            if is_quote_enabled() and not is_sleep_time():
+                media_label.pack(expand=True, padx=80, pady=40)
+            media_renderer.show_media(MEDIA_DIR / value)
 
         if action == "set_footer_text":
             set_footer_text(

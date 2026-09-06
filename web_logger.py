@@ -203,6 +203,51 @@ def set_dashboard_automation():
     return jsonify({"status": "queued", "enabled": enabled}), 202
 
 
+from services.media_service import list_media, save_media, delete_media, get_random_media
+from werkzeug.utils import secure_filename
+
+# -------------------------
+# MEDIA LIBRARY & MANAGEMENT APIs
+# -------------------------
+@app.route("/api/media", methods=["GET"])
+def get_media_list():
+    return jsonify({
+        "media": list_media(),
+        "count": len(list_media())
+    })
+
+@app.route("/api/media", methods=["POST"])
+def upload_media():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file:
+        filename = secure_filename(file.filename)
+        save_media(file, filename)
+        return jsonify({"status": "uploaded", "filename": filename}), 201
+
+@app.route("/api/media", methods=["DELETE"])
+def remove_media():
+    data = request.get_json(silent=True) or {}
+    filename = data.get("filename", "").strip()
+    if not filename:
+        return jsonify({"error": "Filename is required"}), 400
+    success = delete_media(filename)
+    if not success:
+        return jsonify({"error": "File not found"}), 404
+    return jsonify({"status": "deleted", "filename": filename}), 200
+
+@app.route("/api/media/current", methods=["POST"])
+def set_active_media():
+    data = request.get_json(silent=True) or {}
+    filename = data.get("filename", "").strip()
+    if not filename:
+        return jsonify({"error": "Filename is required"}), 400
+    command_queue.put(("show_media", filename))
+    return jsonify({"status": "queued", "filename": filename}), 202
+
 # -------------------------
 # QUOTE LIBRARY & MANAGEMENT APIs
 # -------------------------

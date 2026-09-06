@@ -450,6 +450,25 @@
           <div class="empty-state">Loading quote library…</div>
         </div>
       </section>
+
+      <!-- Media Library & Management -->
+      <section class="full-width">
+        <div class="card-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <h2>Media Library (Images & GIFs)</h2>
+            <span class="badge" id="media-count-badge">0 Files</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="small" onclick="document.getElementById('media-upload-input').click()">+ Upload Media</button>
+            <input type="file" id="media-upload-input" style="display:none;" accept=".png,.jpg,.jpeg,.gif" onchange="uploadMedia(event)">
+          </div>
+        </div>
+
+        <!-- Media List -->
+        <div class="quotes-scroll-box" id="media-list">
+          <div class="empty-state">Loading media library…</div>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -808,8 +827,99 @@
       }
     }
 
+    let allMedia = [];
+    async function loadMediaLibrary() {
+      try {
+        const res = await fetch('/api/media');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        allMedia = data.media || [];
+        
+        el('media-count-badge').textContent = `${allMedia.length} Files`;
+        renderMedia(allMedia);
+      } catch (err) {
+        el('media-list').innerHTML = '<div class="empty-state">Could not load media library.</div>';
+      }
+    }
+
+    function renderMedia(media) {
+      const container = el('media-list');
+      if (!media.length) {
+        container.innerHTML = '<div class="empty-state">No media available.</div>';
+        return;
+      }
+
+      container.innerHTML = media.map((m, idx) => {
+        return `
+          <div class="quote-item">
+            <div class="quote-item-text">${escapeHtml(m.filename)} (${m.type})</div>
+            <div class="quote-item-footer">
+              <div class="quote-actions">
+                <button type="button" class="small" onclick="setActiveMedia('${escapeHtml(m.filename)}')">Show on Screen</button>
+                <button type="button" class="small danger" onclick="deleteMediaItem('${escapeHtml(m.filename)}')">Delete</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function uploadMedia(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      try {
+        const res = await fetch('/api/media', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to upload media');
+        el('updated').textContent = 'Media uploaded successfully!';
+        await loadMediaLibrary();
+      } catch (err) {
+        alert(err.message);
+      }
+      event.target.value = ''; // reset input
+    }
+
+    async function deleteMediaItem(filename) {
+      if (!confirm(`Delete media file "${filename}"?`)) return;
+
+      try {
+        const res = await fetch('/api/media', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: filename })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to delete media');
+        el('updated').textContent = 'Media deleted.';
+        await loadMediaLibrary();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function setActiveMedia(filename) {
+      try {
+        const res = await fetch('/api/media/current', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: filename })
+        });
+        if (!res.ok) throw new Error();
+        el('updated').textContent = 'Media displayed on screen!';
+      } catch (err) {
+        alert('Could not update display media.');
+      }
+    }
+
     load();
     loadQuoteLibrary();
+    loadMediaLibrary();
     setInterval(load, 30000);
   </script>
 </body>

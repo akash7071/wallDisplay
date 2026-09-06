@@ -24,18 +24,28 @@ root.configure(bg=COLOR_BACKGROUND)
 root.config(cursor="none")
 
 # -------------------------
-# QUOTE (CENTER)
+# QUOTE / MEDIA (CENTER)
 # -------------------------
+center_frame = tk.Frame(root, bg=COLOR_BACKGROUND)
+center_frame.pack(expand=True, fill="both")
+
 label = tk.Label(
-    root,
+    center_frame,
     text="Loading...",
     font=(FONT_FAMILY_QUOTE, 44, "bold"),
     fg=COLOR_PRIMARY_TEXT,
     bg=COLOR_BACKGROUND,
-    wraplength=max(root.winfo_screenwidth() - 320, 600),
+    wraplength=max(root.winfo_screenwidth() - 320, 600) if root.winfo_screenwidth() > 1 else 1000,
     justify="center",
 )
-label.pack(expand=True, padx=80, pady=40)
+# label.pack(expand=True, padx=80, pady=40)  # We will pack this dynamically
+
+media_label = tk.Label(
+    center_frame,
+    bg=COLOR_BACKGROUND
+)
+# media_label.pack(expand=True, padx=80, pady=40) # We will pack this dynamically
+
 
 # -------------------------
 # WEATHER (TOP-LEFT)
