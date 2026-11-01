@@ -9,6 +9,8 @@ from config import (
     FOOTER_TEXT_LINE1,
     FOOTER_TEXT_LINE2,
     FOOTER_FONT,
+    FOOTER_FONT_ACTIVE,
+    FOOTER_FONT_INACTIVE,
     FOOTER_NORMAL_FG,
     FOOTER_HIGHLIGHT_FG,
 )
@@ -104,7 +106,7 @@ initial_footer = get_footer_text()
 footer_label1 = tk.Label(
     footer_frame,
     text=initial_footer.get("line1", FOOTER_TEXT_LINE1),
-    font=FOOTER_FONT,
+    font=FOOTER_FONT_INACTIVE,
     fg=FOOTER_NORMAL_FG,
     bg=COLOR_BACKGROUND,
     anchor="e",
@@ -115,7 +117,7 @@ footer_label1.pack(anchor="e", padx=36, pady=(0, 0))
 footer_label2 = tk.Label(
     footer_frame,
     text=initial_footer.get("line2", FOOTER_TEXT_LINE2),
-    font=FOOTER_FONT,
+    font=FOOTER_FONT_INACTIVE,
     fg=FOOTER_NORMAL_FG,
     bg=COLOR_BACKGROUND,
     anchor="e",
@@ -140,11 +142,11 @@ def update_footer(root, label1, label2, schedule_next=True):
             highlight_first = not highlight_first
 
     if highlight_first:
-        label1.config(fg=FOOTER_HIGHLIGHT_FG, font=(FOOTER_FONT[0], FOOTER_FONT[1], "bold"))
-        label2.config(fg=FOOTER_NORMAL_FG, font=FOOTER_FONT)
+        label1.config(fg=FOOTER_HIGHLIGHT_FG, font=FOOTER_FONT_ACTIVE)
+        label2.config(fg=FOOTER_NORMAL_FG, font=FOOTER_FONT_INACTIVE)
     else:
-        label1.config(fg=FOOTER_NORMAL_FG, font=FOOTER_FONT)
-        label2.config(fg=FOOTER_HIGHLIGHT_FG, font=(FOOTER_FONT[0], FOOTER_FONT[1], "bold"))
+        label1.config(fg=FOOTER_NORMAL_FG, font=FOOTER_FONT_INACTIVE)
+        label2.config(fg=FOOTER_HIGHLIGHT_FG, font=FOOTER_FONT_ACTIVE)
 
     if schedule_next:
         root.after(60 * 1000, lambda: update_footer(root, label1, label2))
