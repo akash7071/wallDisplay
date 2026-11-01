@@ -19,9 +19,23 @@ from services.dashboard_settings import get_footer_text
 # ROOT WINDOW
 # -------------------------
 root = tk.Tk()
+
+# Set initial geometry to full screen to prevent window from collapsing
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+root.geometry(f"{screen_width}x{screen_height}+0+0")
+
 root.attributes("-fullscreen", True)
 root.configure(bg=COLOR_BACKGROUND)
 root.config(cursor="none")
+
+def apply_fullscreen():
+    root.attributes("-fullscreen", True)
+
+# Raspberry Pi window managers (Wayland/Wayfire/Openbox) can drop the fullscreen
+# hint if applied before the window is mapped. Re-assert with slight delays.
+root.after(100, apply_fullscreen)
+root.after(500, apply_fullscreen)
 
 # -------------------------
 # QUOTE / MEDIA (CENTER)
@@ -136,6 +150,11 @@ def update_footer(root, label1, label2, schedule_next=True):
         root.after(60 * 1000, lambda: update_footer(root, label1, label2))
 
 # -------------------------
-# EXIT BINDING
+# KEY BINDINGS
 # -------------------------
+def toggle_fullscreen(event=None):
+    is_fs = root.attributes("-fullscreen")
+    root.attributes("-fullscreen", not is_fs)
+
+root.bind("<F11>", toggle_fullscreen)
 root.bind("<Escape>", lambda e: root.destroy())
